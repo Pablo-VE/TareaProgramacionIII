@@ -37,11 +37,11 @@ func login(w http.ResponseWriter, r *http.Request) {
 	lname := r.FormValue("password")
 
 	d := struct {
-		cedula   string
-		password string
+		Cedula   string
+		Password string
 	}{
-		cedula:   fname,
-		password: lname,
+		Cedula:   fname,
+		Password: lname,
 	}
 
 	tpl.ExecuteTemplate(w, "menu.html", d)
