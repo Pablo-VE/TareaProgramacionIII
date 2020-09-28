@@ -2,13 +2,66 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"net/http"
 	"time"
 )
 
+const url string = "http://localhost:8989/"
+
+var tpl *template.Template
+
+func init() {
+	tpl = template.Must(template.ParseGlob("templates/*.html"))
+}
+
 func main() {
-	response, err := http.Get("http://localhost:8989/")
+	http.HandleFunc("/", index)
+	http.HandleFunc("/login", login)
+	http.ListenAndServe(":8080", nil)
+}
+
+func index(w http.ResponseWriter, r *http.Request) {
+	tpl.ExecuteTemplate(w, "login.html", nil)
+
+}
+
+func login(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	fname := r.FormValue("cedula")
+	lname := r.FormValue("password")
+
+	d := struct {
+		cedula   string
+		password string
+	}{
+		cedula:   fname,
+		password: lname,
+	}
+
+	tpl.ExecuteTemplate(w, "menu.html", d)
+	fmt.Println("hizo esto")
+
+}
+
+type authenticationRequest struct {
+	cedula   string
+	password string
+}
+
+type authenticationResponse struct {
+	jwt     string
+	usuario usuarioDTO
+	//permisos permisoOtorgadoDTO[]
+}
+
+func request() {
+	response, err := http.Get(url)
 	if err != nil {
 		fmt.Printf("The HTTP request failed with error %s\n", err)
 	} else {
@@ -49,7 +102,7 @@ type tramiteTipoDTO struct {
 
 type variacionDTO struct {
 	id            int64
-	grupo         int
+	grupo         int32
 	descripcion   string
 	estado        bool
 	fechaRegistro time.Time
@@ -78,7 +131,7 @@ type clienteDTO struct {
 
 type tramiteRegistradoDTO struct {
 	id              int64
-	tramitesTiposID int
+	tramitesTiposID int32
 	clienteID       clienteDTO
 }
 
@@ -102,4 +155,13 @@ type tramiteEstadoDTO struct {
 	nombre           string
 	descripcion      string
 	estadosSucesores string
+}
+
+type permisoDTO struct {
+	id                int64
+	codigo            string
+	descripcion       string
+	fechaRegistro     time.Time
+	fechaModificacion time.Time
+	estado            bool
 }
