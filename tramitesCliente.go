@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"path/filepath"
 	"time"
 )
 
@@ -17,9 +18,31 @@ func init() {
 }
 
 func main() {
+
+	fs := http.FileServer(http.Dir("./static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	http.HandleFunc("/", index)
 	http.HandleFunc("/login", login)
 	http.ListenAndServe(":8080", nil)
+
+	//prueba nueva
+	/*fs := http.FileServer(http.Dir("./static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	http.HandleFunc("/", serveTemplate)
+	log.Println("Listening on:8080...")
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		log.Fatal(err)
+	}*/
+	//termina prueba
+}
+
+func serveTemplate(w http.ResponseWriter, r *http.Request) {
+	lp := filepath.Join("templates", "layout.html")
+	fp := filepath.Join("templates", filepath.Clean(r.URL.Path))
+
+	tmpl, _ := template.ParseFiles(lp, fp)
+	tmpl.ExecuteTemplate(w, "layout", nil)
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
@@ -32,22 +55,23 @@ func login(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-
-	fname := r.FormValue("cedula")
-	lname := r.FormValue("password")
-
+	fid := r.FormValue("cedula")
+	fpassword := r.FormValue("password")
 	d := struct {
 		Cedula   string
 		Password string
 	}{
-		Cedula:   fname,
-		Password: lname,
+		Cedula:   fid,
+		Password: fpassword,
 	}
-
 	tpl.ExecuteTemplate(w, "menu.html", d)
-	fmt.Println("hizo esto")
+}
+
+func loginRequest(ar authenticationRequest) {
 
 }
+
+//dto's
 
 type authenticationRequest struct {
 	cedula   string
