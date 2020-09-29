@@ -37,7 +37,7 @@ body{
     position: absolute;
     left: 28px;
     font-size: 22px;
-    padding-top: 6px;
+    padding-top: 2px;
 }
 
 .form-group#user-group::before{
