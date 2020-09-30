@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io/ioutil"
+	"log"
 	"net/http"
-	"path/filepath"
 	"time"
 )
 
@@ -24,25 +26,6 @@ func main() {
 	http.HandleFunc("/", index)
 	http.HandleFunc("/login", login)
 	http.ListenAndServe(":8080", nil)
-
-	//prueba nueva
-	/*fs := http.FileServer(http.Dir("./static"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
-	http.HandleFunc("/", serveTemplate)
-	log.Println("Listening on:8080...")
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		log.Fatal(err)
-	}*/
-	//termina prueba
-}
-
-func serveTemplate(w http.ResponseWriter, r *http.Request) {
-	lp := filepath.Join("templates", "layout.html")
-	fp := filepath.Join("templates", filepath.Clean(r.URL.Path))
-
-	tmpl, _ := template.ParseFiles(lp, fp)
-	tmpl.ExecuteTemplate(w, "layout", nil)
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
@@ -57,28 +40,89 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 	fid := r.FormValue("cedula")
 	fpassword := r.FormValue("password")
-	d := struct {
-		Cedula   string
-		Password string
-	}{
-		Cedula:   fid,
-		Password: fpassword,
+
+	ar := AuthenticationRequest{fid, fpassword}
+
+	j, err := json.Marshal(ar)
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", "http://localhost:8989/usuarios/login", bytes.NewBuffer(j))
+	req.Header.Add("Content-Type", "application/json;charset=utf-8")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer res.Body.Close()
+	if res.StatusCode != 200 {
+		respuesta = "Credenciales erroneas"
+	} else {
+		respuesta = "Login Exitoso"
+	}
+
+	d := struct {
+		Respuesta string
+	}{
+		Respuesta: respuesta,
+	}
+
 	tpl.ExecuteTemplate(w, "menu.html", d)
 }
 
-func loginRequest(ar authenticationRequest) {
+/*
+func loginRequest(id string, pass string) {
+	c := id
+	p := pass
+	ar := AuthenticationRequest{c, p}
 
+	j, err := json.Marshal(ar)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", "http://localhost:8989/usuarios/login", bytes.NewBuffer(j))
+	req.Header.Add("Content-Type", "application/json;charset=utf-8")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer res.Body.Close()
+
+	body, _ := ioutil.ReadAll(res.Body)
+	s := string(body)
+	if res.StatusCode != 200 {
+		fmt.Println("Bad Credentials")
+		fmt.Println("StatusCode: ", res.StatusCode)
+		fmt.Println(s)
+	}
+
+}*/
+
+var respuesta string
+
+//AuthenticationRequest es el dto para hacer el login
+type AuthenticationRequest struct {
+	Cedula   string `json:"cedula"`
+	Password string `json:"password"`
 }
 
-//dto's
-
-type authenticationRequest struct {
-	cedula   string
-	password string
-}
-
-type authenticationResponse struct {
+//AuthenticationResponse es el dto para la respuesta del login
+type AuthenticationResponse struct {
 	jwt     string
 	usuario usuarioDTO
 	//permisos permisoOtorgadoDTO[]
