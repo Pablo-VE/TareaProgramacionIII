@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -63,9 +64,6 @@ func login(w http.ResponseWriter, r *http.Request) {
 		respuesta = "Login Exitoso"
 	}
 	body, _ := ioutil.ReadAll(res.Body)
-	bodyString := string(body)
-	fmt.Println("Authetication Response String: ", bodyString)
-
 	json.Unmarshal(body, &usuarioLogeado)
 	fmt.Println("Authetication Response Struct: ", usuarioLogeado)
 	d := struct {
@@ -76,11 +74,104 @@ func login(w http.ResponseWriter, r *http.Request) {
 	tpl.ExecuteTemplate(w, "menu.html", d)
 }
 
+func findAllTramitesRegistrados() {
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", url+"tramites_registrados/", nil)
+	req.Header.Add("Content-Type", "application/json;charset=utf-8")
+	req.Header.Add("Authorization", "bearer "+usuarioLogeado.Jwt)
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer res.Body.Close()
+	bodyBytes, _ := ioutil.ReadAll(res.Body)
+	if res.StatusCode == 200 {
+		var tramitesregistrados []TramiteRegistradoDTO
+		json.Unmarshal(bodyBytes, &tramitesregistrados)
+	}
+}
+
+func findTramitesRegistradosByID(idTR int64) {
+	id := strconv.FormatInt(idTR, 10)
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", url+"tramites_registrados/"+id, nil)
+	req.Header.Add("Content-Type", "application/json;charset=utf-8")
+	req.Header.Add("Authorization", "bearer "+usuarioLogeado.Jwt)
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer res.Body.Close()
+	bodyBytes, _ := ioutil.ReadAll(res.Body)
+	if res.StatusCode == 200 {
+		var tramiteregistrado TramiteRegistradoDTO
+		json.Unmarshal(bodyBytes, &tramiteregistrado)
+	}
+}
+
+func findTipoTramiteByID(idTT int64) {
+	id := strconv.FormatInt(idTT, 10)
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", url+"tramites_tipos/"+id, nil)
+	req.Header.Add("Content-Type", "application/json;charset=utf-8")
+	req.Header.Add("Authorization", "bearer "+usuarioLogeado.Jwt)
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer res.Body.Close()
+	bodyBytes, _ := ioutil.ReadAll(res.Body)
+	if res.StatusCode == 200 {
+		var tramitetipo TramiteTipoDTO
+		json.Unmarshal(bodyBytes, &tramitetipo)
+	}
+
+}
+
+func findNotasByTramiteRegistradoID(idTR int64) {
+	id := strconv.FormatInt(idTR, 10)
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", url+"notas/tramitesRegistrados/"+id, nil)
+	req.Header.Add("Content-Type", "application/json;charset=utf-8")
+	req.Header.Add("Authorization", "bearer "+usuarioLogeado.Jwt)
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer res.Body.Close()
+	bodyBytes, _ := ioutil.ReadAll(res.Body)
+	var notas []NotaDTO
+	if res.StatusCode == 200 {
+
+		json.Unmarshal(bodyBytes, &notas)
+	}
+}
+
+/*
+func crearTramiteVista(int64 idTramiteRegistrado) {
+	//buscarTramiteRegistradoPorId
+
+}*/
+
 //Estructura para el table view
-type datoTramites struct {
-	id      int64
-	cliente string
-	cedula  string
+type datoTramitesTable struct {
+	id            int64
+	nombreCliente string
+	cedulaCliente string
+	estado        string
+	fechaRegistro string
 }
 
 //requisitosPresentados es una estructura para la lista de requisitosPresentados con la informacion de ellos que queremos mostrar
@@ -199,7 +290,7 @@ type ClienteDTO struct {
 type TramiteRegistradoDTO struct {
 	ID              int64      `json:"id"`
 	TramitesTiposID int32      `json:"tramitesTiposId"`
-	ClienteID       ClienteDTO `json:"clienteId"`
+	ClienteID       ClienteDTO `json:"cliente"`
 }
 
 //RequisitoPresentadoDTO is...
@@ -244,4 +335,16 @@ type PermisoOtorgadoDTO struct {
 	Permiso       PermisoDTO `json:"permiso"`
 	FechaRegistro time.Time  `json:"fechaRegistro"`
 	Estado        bool       `json:"estado"`
+}
+
+//NotaDTO is...
+type NotaDTO struct {
+	ID                  int64                `json:"id"`
+	Estado              bool                 `json:"estado"`
+	Tipo                bool                 `json:"tipo"`
+	Titulo              string               `json:"titulo"`
+	Contenido           string               `json:"contenido"`
+	FechaRegistro       time.Time            `json:"fechaRegistro"`
+	FechaModificacion   time.Time            `json:"fechaModificacion"`
+	TramitesRegistrados TramiteRegistradoDTO `json:"tramitesRegistrados"`
 }
