@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+var usuarioLogeado AuthenticationResponse
+
 const url string = "http://localhost:8989/"
 
 var tpl *template.Template
@@ -20,7 +22,6 @@ func init() {
 }
 
 func main() {
-
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	http.HandleFunc("/", index)
@@ -30,7 +31,6 @@ func main() {
 
 func index(w http.ResponseWriter, r *http.Request) {
 	tpl.ExecuteTemplate(w, "login.html", nil)
-
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
@@ -40,18 +40,14 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 	fid := r.FormValue("cedula")
 	fpassword := r.FormValue("password")
-
 	ar := AuthenticationRequest{fid, fpassword}
-
 	j, err := json.Marshal(ar)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	client := &http.Client{}
-	req, err := http.NewRequest("POST", "http://localhost:8989/usuarios/login", bytes.NewBuffer(j))
+	req, err := http.NewRequest("POST", url+"autenticacion/login", bytes.NewBuffer(j))
 	req.Header.Add("Content-Type", "application/json;charset=utf-8")
-
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -59,57 +55,82 @@ func login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	defer res.Body.Close()
-
+	var respuesta string
 	if res.StatusCode != 200 {
 		respuesta = "Credenciales erroneas"
 	} else {
 		respuesta = "Login Exitoso"
 	}
-
 	body, _ := ioutil.ReadAll(res.Body)
 	bodyString := string(body)
 	fmt.Println("Authetication Response String: ", bodyString)
-	var data AuthenticationResponse
-	json.Unmarshal(body, &data)
 
+	json.Unmarshal(body, &usuarioLogeado)
+	fmt.Println("Authetication Response Struct: ", usuarioLogeado)
 	d := struct {
 		Respuesta string
 	}{
 		Respuesta: respuesta,
 	}
-
 	tpl.ExecuteTemplate(w, "menu.html", d)
 }
 
-var respuesta string
+//Estructura para el table view
+type datoTramites struct {
+	id      int64
+	cliente string
+	cedula  string
+}
 
-//AuthenticationRequest es el dto para hacer el login
+//requisitosPresentados es una estructura para la lista de requisitosPresentados con la informacion de ellos que queremos mostrar
+type requisitosPresentados struct {
+	fechaRegistro        time.Time
+	nombreRequisito      string
+	descripcionVariacion string
+}
+
+//Notas es una estructura para la lista de notas con la informacion de ellas que queremos mostrar
+type Notas struct {
+	titulo    string
+	contenido string
+}
+
+//TramitesCambioEstados es una estructura para la lista de los cambios de estado de los tramites con la informacion de ellos que queremos mostrar
+type TramitesCambioEstados struct {
+	nombreTramiteEstado      string
+	descripcionTramiteEstado string
+	nombreUsuario            string
+	fechaRegistro            time.Time
+}
+
+//TramiteRegistrado es la estructura de los tramites registrados que queremos mostrar en el html
+type TramiteRegistrado struct {
+	nombreCliente          string
+	cedulaCliente          string
+	descripcionTipoTramite string
+	nombreDepartamento     string
+	requisitos             []requisitosPresentados
+	notas                  []Notas
+	tramitesCambioEstados  []TramitesCambioEstados
+	estadoActualNombre     string
+	descripcionEstado      string
+}
+
+//AuthenticationRequest is...
 type AuthenticationRequest struct {
 	Cedula   string `json:"cedula"`
 	Password string `json:"password"`
 }
 
-//AuthenticationResponse es el dto para la respuesta del login
+//AuthenticationResponse is...
 type AuthenticationResponse struct {
 	Jwt      string               `json:"jwt"`
 	Usuario  UsuarioDTO           `json:"usuario"`
-	Permisos []permisoOtorgadoDTO `json:"permisos"`
+	Permisos []PermisoOtorgadoDTO `json:"permisosOtorgados"`
 }
 
-func request() {
-	response, err := http.Get(url)
-	if err != nil {
-		fmt.Printf("The HTTP request failed with error %s\n", err)
-	} else {
-		data, _ := ioutil.ReadAll(response.Body)
-		fmt.Println("Funciono xD")
-		fmt.Println(string(data))
-	}
-}
-
-//UsuarioDTO es
+//UsuarioDTO is...
 type UsuarioDTO struct {
 	ID                 int64           `json:"id"`
 	NombreCompleto     string          `json:"nombreCompleto"`
@@ -119,10 +140,11 @@ type UsuarioDTO struct {
 	FechaRegistro      time.Time       `json:"fechaRegistro"`
 	FechaModificacion  time.Time       `json:"fechaModificacion"`
 	EsJefe             bool            `json:"esJefe"`
-	Departamento       departamentoDTO `json:"departamento"`
+	Departamento       DepartamentoDTO `json:"departamento"`
 }
 
-type departamentoDTO struct {
+//DepartamentoDTO is...
+type DepartamentoDTO struct {
 	ID                int64     `json:"id"`
 	Nombre            string    `json:"nombre"`
 	Estado            bool      `json:"estado"`
@@ -130,85 +152,96 @@ type departamentoDTO struct {
 	FechaModificacion time.Time `json:"fechaModificacion"`
 }
 
-type tramiteTipoDTO struct {
-	id                int64
-	descripcion       string
-	estado            bool
-	departamento      departamentoDTO
-	fechaRegistro     time.Time
-	fechaModificacion time.Time
+//TramiteTipoDTO is...
+type TramiteTipoDTO struct {
+	ID                int64           `json:"id"`
+	Descripcion       string          `json:"descripcion"`
+	Estado            bool            `json:"estado"`
+	Departamento      DepartamentoDTO `json:"departamento"`
+	FechaRegistro     time.Time       `json:"fechaRegistro"`
+	FechaModificacion time.Time       `json:"fechaModificacion"`
+	Variaciones       []VariacionDTO  `json:"variaciones"`
 }
 
-type variacionDTO struct {
-	id            int64
-	grupo         int32
-	descripcion   string
-	estado        bool
-	fechaRegistro time.Time
-	tramitesTipos tramiteTipoDTO
+//VariacionDTO is...
+type VariacionDTO struct {
+	ID            int64          `json:"id"`
+	Grupo         int32          `json:"grupo"`
+	Descripcion   string         `json:"descripcion"`
+	Estado        bool           `json:"estado"`
+	FechaRegistro time.Time      `json:"fechaRegistro"`
+	TramitesTipos TramiteTipoDTO `json:"tramitesTipos"`
 }
 
-type requisitoDTO struct {
-	id            int64
-	descripcion   string
-	estado        bool
-	fechaRegistro time.Time
-	variaciones   variacionDTO
+//RequisitoDTO is...
+type RequisitoDTO struct {
+	ID            int64        `json:"id"`
+	Descripcion   string       `json:"descripcion"`
+	Estado        bool         `json:"estado"`
+	FechaRegistro time.Time    `json:"fechaRegistro"`
+	Variaciones   VariacionDTO `json:"variaciones"`
 }
 
-type clienteDTO struct {
-	id                 int64
-	nombreCompleto     string
-	cedula             string
-	telefono           string
-	direccion          string
-	estado             bool
-	fechaRegistro      time.Time
-	fechaModificacion  time.Time
-	passwordEncriptado string
+//ClienteDTO is...
+type ClienteDTO struct {
+	ID                 int64     `json:"id"`
+	NombreCompleto     string    `json:"nombreCompleto"`
+	Cedula             string    `json:"cedula"`
+	Telefono           string    `json:"telefono"`
+	Direccion          string    `json:"direccion"`
+	Estado             bool      `json:"estado"`
+	FechaRegistro      time.Time `json:"fechaRegistro"`
+	FechaModificacion  time.Time `json:"fechaModificacion"`
+	PasswordEncriptado string    `json:"passwordEncriptado"`
 }
 
-type tramiteRegistradoDTO struct {
-	id              int64
-	tramitesTiposID int32
-	clienteID       clienteDTO
+//TramiteRegistradoDTO is...
+type TramiteRegistradoDTO struct {
+	ID              int64      `json:"id"`
+	TramitesTiposID int32      `json:"tramitesTiposId"`
+	ClienteID       ClienteDTO `json:"clienteId"`
 }
 
-type requisitoPresentadoDTO struct {
-	id                  int64
-	fechaRegistro       time.Time
-	tramiteRegistradoID tramiteRegistradoDTO
-	requisitoID         requisitoDTO
+//RequisitoPresentadoDTO is...
+type RequisitoPresentadoDTO struct {
+	ID                  int64                `json:"id"`
+	FechaRegistro       time.Time            `json:"fechaRegistro"`
+	TramiteRegistradoID TramiteRegistradoDTO `json:"tramiteRegistradoId"`
+	RequisitoID         RequisitoDTO         `json:"requisitoId"`
 }
 
-type tramiteCambioEstadoDTO struct {
-	id                    int64
-	usuarioID             UsuarioDTO
-	tramitesRegistradosID tramiteRegistradoDTO
-	tramiteEstadoID       tramiteEstadoDTO
-	fechaRegistro         time.Time
+//TramiteCambioEstadoDTO is...
+type TramiteCambioEstadoDTO struct {
+	ID                    int64                `json:"id"`
+	UsuarioID             UsuarioDTO           `json:"usuarioId"`
+	TramitesRegistradosID TramiteRegistradoDTO `json:"tramitesRegistradosId"`
+	TramiteEstadoID       TramiteEstadoDTO     `json:"tramitesEstadoId"`
+	FechaRegistro         time.Time            `json:"fechaRegistro"`
 }
 
-type tramiteEstadoDTO struct {
-	id               int64
-	nombre           string
-	descripcion      string
-	estadosSucesores string
+//TramiteEstadoDTO is...
+type TramiteEstadoDTO struct {
+	ID               int64  `json:"id"`
+	Nombre           string `json:"nombre"`
+	Descripcion      string `json:"descripcion"`
+	EstadosSucesores string `json:"estadosSucesores"`
 }
 
-type permisoDTO struct {
-	id                int64
-	codigo            string
-	descripcion       string
-	fechaRegistro     time.Time
-	fechaModificacion time.Time
-	estado            bool
+//PermisoDTO is...
+type PermisoDTO struct {
+	ID                int64     `json:"id"`
+	Codigo            string    `json:"codigo"`
+	Descripcion       string    `json:"descripcion"`
+	FechaRegistro     time.Time `json:"fechaRegistro"`
+	FechaModificacion time.Time `json:"fechaModificacion"`
+	Estado            bool      `json:"estado"`
 }
 
-type permisoOtorgadoDTO struct {
-	id            int64
-	usuario       UsuarioDTO
-	permiso       permisoDTO
-	fechaRegistro time.Time
-	estado        bool
+//PermisoOtorgadoDTO is...
+type PermisoOtorgadoDTO struct {
+	ID            int64      `json:"id"`
+	Usuario       UsuarioDTO `json:"usuario"`
+	Permiso       PermisoDTO `json:"permiso"`
+	FechaRegistro time.Time  `json:"fechaRegistro"`
+	Estado        bool       `json:"estado"`
 }
