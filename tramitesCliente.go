@@ -28,6 +28,7 @@ func main() {
 	http.HandleFunc("/tramitesRegistrados", login)
 	http.HandleFunc("/buscarPorId", buscarPorID)
 	http.HandleFunc("/buscarPorCedula", buscarPorCedula)
+	http.HandleFunc("/buscarPorEstado", buscarPorEstado)
 	http.HandleFunc("/TramitesRegistrados", limpiar)
 	http.ListenAndServe(":8080", nil)
 }
@@ -122,6 +123,31 @@ func buscarPorCedula(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func buscarPorEstado(w http.ResponseWriter, r *http.Request) {
+	festado := r.FormValue("cbxEstado")
+
+	tramitesDTO := findAllTramitesRegistrados()
+	tramitesTable := crearDatosTable(tramitesDTO)
+
+	var tramites []datoTramitesTable
+	for i := 0; i < len(tramitesTable); i++ {
+		if tramitesTable[i].Estado == festado {
+			tramites = append(tramites, tramitesTable[i])
+		}
+	}
+
+	d := struct {
+		Usuario  string
+		Tramites []datoTramitesTable
+	}{
+		Usuario:  usuarioLogeado.Usuario.NombreCompleto,
+		Tramites: tramites,
+	}
+
+	tpl.ExecuteTemplate(w, "tramites.html", d)
+
+}
+
 func limpiar(w http.ResponseWriter, r *http.Request) {
 
 	tramitesDTO := findAllTramitesRegistrados()
@@ -183,7 +209,7 @@ func findTramitesRegistradosByID(idTR int64) (tramiteregistrado TramiteRegistrad
 
 func findTramitesRegistradosByCedulaCliente(cedula string) (tramiteregistrados []TramiteRegistradoDTO) {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", url+"tramites_registrados/"+cedula, nil)
+	req, err := http.NewRequest("GET", url+"tramites_registrados/cedula/"+cedula, nil)
 	req.Header.Add("Content-Type", "application/json;charset=utf-8")
 	req.Header.Add("Authorization", "bearer "+usuarioLogeado.Jwt)
 	if err != nil {
@@ -313,7 +339,7 @@ func obtenerUltimoEstado(idTR int64) (tramiteCE TramitesCambioEstados) {
 		tramiteCE.nombreTramiteEstado = tramiteCEDTO.TramiteEstadoID.Nombre
 		tramiteCE.descripcionTramiteEstado = tramiteCEDTO.TramiteEstadoID.Descripcion
 		tramiteCE.nombreUsuario = tramiteCEDTO.UsuarioID.NombreCompleto
-		tramiteCE.fechaRegistro = tramiteCEDTO.FechaRegistro.String()
+		tramiteCE.fechaRegistro = tramiteCEDTO.FechaRegistro.Format("Mon Jan _2 15:04:05 2006")
 	}
 	return tramiteCE
 }
