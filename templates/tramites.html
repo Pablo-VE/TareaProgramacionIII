@@ -50,6 +50,20 @@
                     </form>
                 </div>
 
+                <div class="col-md-4 form-inline">
+                    <form action=/buscarPorFecha method="POST">
+                        <input type="date" class="form-control" placeholder="Buscar por fecha" name="txtFecha" id="datePicker">
+                        <input type="submit" class="btn btn-primary" value="Buscar" name="btnBuscar"> 
+                         
+                    </form>
+                </div>
+
+                <div class="col-md-4 form-inline" id="filtros">
+                    <form action=/TramitesRegistrados method="POST">
+                        <input type="submit" class="btn btn-primary" value="Limpiar" name="btnLimpiar">                    
+                    </form>
+                </div>
+
                 
                 
             
@@ -86,12 +100,9 @@
                     {{ end}}
                 </tbody>
             </table>
+            <input type="submit" class="btn btn-primary" value="Buscar" name="btnBuscar">
         </div>
-        <div class="col-md-4 form-inline" id="filtros">
-            <form action=/TramitesRegistrados method="POST">
-                <input type="submit" class="btn btn-primary" value="Limpiar" name="btnLimpiar">                    
-            </form>
-        </div>
+ 
     </div>
 
     

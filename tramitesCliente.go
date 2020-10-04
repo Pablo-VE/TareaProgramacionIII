@@ -3,11 +3,13 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -29,7 +31,9 @@ func main() {
 	http.HandleFunc("/buscarPorId", buscarPorID)
 	http.HandleFunc("/buscarPorCedula", buscarPorCedula)
 	http.HandleFunc("/buscarPorEstado", buscarPorEstado)
+	http.HandleFunc("/buscarPorFecha", buscarPorFecha)
 	http.HandleFunc("/TramitesRegistrados", limpiar)
+	http.HandleFunc("/irTramite", irTramite)
 	http.ListenAndServe(":8080", nil)
 }
 
@@ -148,6 +152,26 @@ func buscarPorEstado(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func buscarPorFecha(w http.ResponseWriter, r *http.Request) {
+	ffecha := r.FormValue("txtFecha")
+	ffecha2 := strings.Split(ffecha, "-")
+	fecha := strings.Join(ffecha2, "")
+	now := time.Now()
+	date := now.Format("20060102")
+	fmt.Println(date)
+	date = now.Format("2006-01-02")
+	date2, err := time.Parse("20060102", fecha)
+	if err == nil {
+
+	}
+
+	var fecha1 time.Time
+	fecha1 = date2
+	fechaString := fecha1.Format("Mon Jan _2 15:04:05 2006")
+	fmt.Println(fechaString)
+
+}
+
 func limpiar(w http.ResponseWriter, r *http.Request) {
 
 	tramitesDTO := findAllTramitesRegistrados()
@@ -163,6 +187,11 @@ func limpiar(w http.ResponseWriter, r *http.Request) {
 
 	tpl.ExecuteTemplate(w, "tramites.html", d)
 
+}
+
+func irTramite(w http.ResponseWriter, r *http.Request) {
+	fid := r.FormValue("id")
+	fmt.Println("id table: ", fid)
 }
 
 func findAllTramitesRegistrados() (tramitesregistrados []TramiteRegistradoDTO) {
