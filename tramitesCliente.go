@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -26,7 +25,7 @@ func main() {
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	http.HandleFunc("/", index)
-	http.HandleFunc("/login", login)
+	http.HandleFunc("/tramitesRegistrados", login)
 	http.ListenAndServe(":8080", nil)
 }
 
@@ -57,20 +56,14 @@ func login(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 	defer res.Body.Close()
-	//var respuesta string
 	if res.StatusCode != 200 {
-		//respuesta = "Credenciales erroneas"
+		tpl.ExecuteTemplate(w, "login.html", nil)
 	} else {
-		//respuesta = "Login Exitoso"
-
 		body, _ := ioutil.ReadAll(res.Body)
 		json.Unmarshal(body, &usuarioLogeado)
 
 		tramitesDTO := findAllTramitesRegistrados()
 		tramitesTable := crearDatosTable(tramitesDTO)
-		for i := 0; i < len(tramitesTable); i++ {
-			fmt.Printf("Objeto: %v", tramitesTable[i])
-		}
 
 		d := struct {
 			Usuario  string
@@ -80,7 +73,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 			Tramites: tramitesTable,
 		}
 
-		tpl.ExecuteTemplate(w, "HTML.html", d)
+		tpl.ExecuteTemplate(w, "tramites.html", d)
 	}
 }
 
@@ -126,7 +119,7 @@ func findTramitesRegistradosByID(idTR int64) {
 	}
 }
 
-func findTipoTramiteByID(idTT int64) {
+func findTipoTramiteByID(idTT int64) (tramitetipo TramiteTipoDTO) {
 	id := strconv.FormatInt(idTT, 10)
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url+"tramites_tipos/"+id, nil)
@@ -142,9 +135,9 @@ func findTipoTramiteByID(idTT int64) {
 	defer res.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(res.Body)
 	if res.StatusCode == 200 {
-		var tramitetipo TramiteTipoDTO
 		json.Unmarshal(bodyBytes, &tramitetipo)
 	}
+	return tramitetipo
 
 }
 
@@ -217,7 +210,7 @@ func findTramiteCambioEstadoByTramiteRegistradoID(idTR int64) (tramitesCambio []
 
 func crearDatosTable(tramitesRegistrados []TramiteRegistradoDTO) (tramitesTable []datoTramitesTable) {
 	for i := 0; i < len(tramitesRegistrados); i++ {
-		tramite := datoTramitesTable{ID: tramitesRegistrados[i].ID, NombreCliente: tramitesRegistrados[i].ClienteID.NombreCompleto, CedulaCliente: tramitesRegistrados[i].ClienteID.Cedula, FechaRegistro: obtenerUltimoEstado(tramitesRegistrados[i].ID).FechaRegistro.String(), Estado: obtenerUltimoEstado(tramitesRegistrados[i].ID).TramiteEstadoID.Nombre}
+		tramite := datoTramitesTable{ID: tramitesRegistrados[i].ID, NombreCliente: tramitesRegistrados[i].ClienteID.NombreCompleto, CedulaCliente: tramitesRegistrados[i].ClienteID.Cedula, TipoTramite: findTipoTramiteByID(int64(tramitesRegistrados[i].TramitesTiposID)).Descripcion, FechaRegistro: obtenerUltimoEstado(tramitesRegistrados[i].ID).FechaRegistro.String(), Estado: obtenerUltimoEstado(tramitesRegistrados[i].ID).TramiteEstadoID.Nombre}
 		tramitesTable = append(tramitesTable, tramite)
 	}
 	return tramitesTable
@@ -243,6 +236,7 @@ type datoTramitesTable struct {
 	ID            int64
 	NombreCliente string
 	CedulaCliente string
+	TipoTramite   string
 	Estado        string
 	FechaRegistro string
 }

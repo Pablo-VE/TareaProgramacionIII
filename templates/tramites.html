@@ -1,31 +1,97 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>Tramites Registrados</title>
-        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.8/css/solid.css">
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-        <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css">
-        <!--iconos-->
-        <script src="https://use.fontawesome.com/releases/v5.0.7/js/all.js"></script>
+<html lang="en">
+<head> <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+  <title>Tramites Registrados</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/static/css/tramites.css">
+</head>
+<body>
+    <div class="container">
+        <h1></h1>
+            <img src="/static/img/batman4.png" class="rounded" width="30" height="30"> 
+            <font color="white">
+                <label>{{.Usuario}}</label>
+            </font> 
+        </div>
+        <h2></h2>
+    </div>
+    
+    <div class="container">
         
-    </head>
-    <body>
-        <div class="container mb-3 mt-3">
-            <table class="table table-striped table-bordered tramitesTable" style="width: 100%">
+        <div class="row">
             
-            </table>
+                <div class="col-md-4 form-inline" id="filtros">
+                    <form>
+                        <input type="search" class="form-control" placeholder="Buscar por ID" name="txtID">
+                        
+                        <input type="submit" class="btn btn-primary" value="Buscar" name="btnBuscar"> 
+                         
+                    </form>
+                </div>
+
+                <div class="col-md-4 form-inline">
+                    <form>
+                        <input type="search" class="form-control" placeholder="Buscar por Cédula" name="txtCedula">
+                        
+                        <input type="submit" class="btn btn-primary" value="Buscar" name="btnBuscar"> 
+                         
+                    </form>
+                </div>
+
+                <div class="col-md-4 form-inline">
+                    <form>
+                        <select class="form-control" placeholder="DAKJDSKAJBSD">
+                            <option value="1">Activo</option>
+                            <option value="0">Incactivo</option>
+                          </select>
+                        <!--<select class="custom-select" id="inputGroupSelect04" value = "Buscar por Estado">
+                            =<option selected>Buscar por Estado</option>=
+                            <option value="1">Activo</option>
+                            <option value="2">Inactivo</option>
+                        </select>-->
+                        <button class="btn btn-primary" type="button">Buscar</button>
+                    </form>
+                </div>
+                
+                
+            
 
         </div>
+            
+           
 
-        <!--bootstrap-->
-        <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-        <!--tablas-->
-        <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
-        <script src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
-        <script>
-            $('.tramitesTable').DataTable();
-        </script>
-    </body>
+        
+      
+        <font color="white">
+            <h2 align="center">Tramites Registrados</h2> 
+        </font>                                                                                   
+        <div class="table-responsive">          
+            <table class="table  col-md-12 table-hover table-dark">
+                <thead>
+                    <th>ID</th>
+                    <th>Nombre del Cliente</th>
+                    <th>Cedula del Cliente</th>
+                    <th>Tipo de Tramite</th>
+                    <th>Estado</th>
+                    <th>Fecha de Registro</th>
+                </thead>
+                <tbody>
+                    {{ range .Tramites}}
+                        <tr>
+                            <td>{{ .ID }}</td>
+                            <td>{{ .NombreCliente }}</td>
+                            <td>{{ .CedulaCliente }}</td>
+                            <td>{{ .TipoTramite }}</td>
+                            <td>{{ .Estado }}</td>
+                            <td>{{ .FechaRegistro }}</td>
+                        </tr>
+                    {{ end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+      
+              
+</body>
 </html>
