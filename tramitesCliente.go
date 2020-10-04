@@ -26,6 +26,7 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	http.HandleFunc("/", index)
 	http.HandleFunc("/tramitesRegistrados", login)
+	http.HandleFunc("/buscarPorId", buscarPorID)
 	http.ListenAndServe(":8080", nil)
 }
 
@@ -77,6 +78,30 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func buscarPorID(w http.ResponseWriter, r *http.Request) {
+	fid := r.FormValue("txtID")
+
+	nid, err := strconv.ParseInt(fid, 10, 64)
+	if err != nil {
+
+	}
+	tramiteDTO := findTramitesRegistradosByID(nid)
+	var tramitesDTO []TramiteRegistradoDTO
+	tramitesDTO = append(tramitesDTO, tramiteDTO)
+	tramitesTable := crearDatosTable(tramitesDTO)
+
+	d := struct {
+		Usuario  string
+		Tramites []datoTramitesTable
+	}{
+		Usuario:  usuarioLogeado.Usuario.NombreCompleto,
+		Tramites: tramitesTable,
+	}
+
+	tpl.ExecuteTemplate(w, "tramites.html", d)
+
+}
+
 func findAllTramitesRegistrados() (tramitesregistrados []TramiteRegistradoDTO) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url+"tramites_registrados/", nil)
@@ -98,7 +123,7 @@ func findAllTramitesRegistrados() (tramitesregistrados []TramiteRegistradoDTO) {
 	return nil
 }
 
-func findTramitesRegistradosByID(idTR int64) {
+func findTramitesRegistradosByID(idTR int64) (tramiteregistrado TramiteRegistradoDTO) {
 	id := strconv.FormatInt(idTR, 10)
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url+"tramites_registrados/"+id, nil)
@@ -114,9 +139,9 @@ func findTramitesRegistradosByID(idTR int64) {
 	defer res.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(res.Body)
 	if res.StatusCode == 200 {
-		var tramiteregistrado TramiteRegistradoDTO
 		json.Unmarshal(bodyBytes, &tramiteregistrado)
 	}
+	return tramiteregistrado
 }
 
 func findTipoTramiteByID(idTT int64) (tramitetipo TramiteTipoDTO) {
@@ -210,23 +235,28 @@ func findTramiteCambioEstadoByTramiteRegistradoID(idTR int64) (tramitesCambio []
 
 func crearDatosTable(tramitesRegistrados []TramiteRegistradoDTO) (tramitesTable []datoTramitesTable) {
 	for i := 0; i < len(tramitesRegistrados); i++ {
-		tramite := datoTramitesTable{ID: tramitesRegistrados[i].ID, NombreCliente: tramitesRegistrados[i].ClienteID.NombreCompleto, CedulaCliente: tramitesRegistrados[i].ClienteID.Cedula, TipoTramite: findTipoTramiteByID(int64(tramitesRegistrados[i].TramitesTiposID)).Descripcion, FechaRegistro: obtenerUltimoEstado(tramitesRegistrados[i].ID).FechaRegistro.String(), Estado: obtenerUltimoEstado(tramitesRegistrados[i].ID).TramiteEstadoID.Nombre}
+		tramite := datoTramitesTable{ID: tramitesRegistrados[i].ID, NombreCliente: tramitesRegistrados[i].ClienteID.NombreCompleto, CedulaCliente: tramitesRegistrados[i].ClienteID.Cedula, TipoTramite: findTipoTramiteByID(int64(tramitesRegistrados[i].TramitesTiposID)).Descripcion, FechaRegistro: obtenerUltimoEstado(tramitesRegistrados[i].ID).fechaRegistro, Estado: obtenerUltimoEstado(tramitesRegistrados[i].ID).nombreTramiteEstado}
 		tramitesTable = append(tramitesTable, tramite)
 	}
 	return tramitesTable
 
 }
 
-func obtenerUltimoEstado(idTR int64) (tramiteCE TramiteCambioEstadoDTO) {
+func obtenerUltimoEstado(idTR int64) (tramiteCE TramitesCambioEstados) {
+	var tramiteCEDTO TramiteCambioEstadoDTO
 	tramitesCambio := findTramiteCambioEstadoByTramiteRegistradoID(idTR)
 	if len(tramitesCambio) > 0 {
 		idMayor := tramitesCambio[0].ID
-		tramiteCE = tramitesCambio[0]
+		tramiteCEDTO = tramitesCambio[0]
 		for i := 0; i < len(tramitesCambio); i++ {
 			if idMayor < tramitesCambio[i].ID {
-				tramiteCE = tramitesCambio[i]
+				tramiteCEDTO = tramitesCambio[i]
 			}
 		}
+		tramiteCE.nombreTramiteEstado = tramiteCEDTO.TramiteEstadoID.Nombre
+		tramiteCE.descripcionTramiteEstado = tramiteCEDTO.TramiteEstadoID.Descripcion
+		tramiteCE.nombreUsuario = tramiteCEDTO.UsuarioID.NombreCompleto
+		tramiteCE.fechaRegistro = tramiteCEDTO.FechaRegistro.String()
 	}
 	return tramiteCE
 }
@@ -259,7 +289,7 @@ type TramitesCambioEstados struct {
 	nombreTramiteEstado      string
 	descripcionTramiteEstado string
 	nombreUsuario            string
-	fechaRegistro            time.Time
+	fechaRegistro            string
 }
 
 //TramiteRegistrado es la estructura de los tramites registrados que queremos mostrar en el html

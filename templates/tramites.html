@@ -22,7 +22,7 @@
         <div class="row">
             
                 <div class="col-md-4 form-inline" id="filtros">
-                    <form>
+                    <form action=/buscarPorId method="POST">
                         <input type="search" class="form-control" placeholder="Buscar por ID" name="txtID">
                         
                         <input type="submit" class="btn btn-primary" value="Buscar" name="btnBuscar"> 
@@ -31,7 +31,7 @@
                 </div>
 
                 <div class="col-md-4 form-inline">
-                    <form>
+                    <form action=/buscarPorCedula method="POST"></form>
                         <input type="search" class="form-control" placeholder="Buscar por Cédula" name="txtCedula">
                         
                         <input type="submit" class="btn btn-primary" value="Buscar" name="btnBuscar"> 
@@ -51,6 +51,12 @@
                             <option value="2">Inactivo</option>
                         </select>-->
                         <button class="btn btn-primary" type="button">Buscar</button>
+                    </form>
+                </div>
+
+                <div class="col-md-4 form-inline" id="filtros">
+                    <form action=/limpiar method="POST">
+                        <input type="submit" class="btn btn-primary" value="Limpiar" name="btnLimpiar">                    
                     </form>
                 </div>
                 
