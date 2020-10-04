@@ -57,28 +57,31 @@ func login(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 	defer res.Body.Close()
-	var respuesta string
+	//var respuesta string
 	if res.StatusCode != 200 {
-		respuesta = "Credenciales erroneas"
+		//respuesta = "Credenciales erroneas"
 	} else {
-		respuesta = "Login Exitoso"
-	}
-	body, _ := ioutil.ReadAll(res.Body)
-	json.Unmarshal(body, &usuarioLogeado)
-	d := struct {
-		Respuesta string
-	}{
-		Respuesta: respuesta,
-	}
+		//respuesta = "Login Exitoso"
 
-	tramitesDTO := findAllTramitesRegistrados()
-	tramitesTable := crearDatosTable(tramitesDTO)
-	//fmt.Printf("%v", tramitesTable)
-	for i := 0; i < len(tramitesTable); i++ {
-		fmt.Printf("Objeto: %v", tramitesTable[i])
-	}
+		body, _ := ioutil.ReadAll(res.Body)
+		json.Unmarshal(body, &usuarioLogeado)
 
-	tpl.ExecuteTemplate(w, "menu.html", d)
+		tramitesDTO := findAllTramitesRegistrados()
+		tramitesTable := crearDatosTable(tramitesDTO)
+		for i := 0; i < len(tramitesTable); i++ {
+			fmt.Printf("Objeto: %v", tramitesTable[i])
+		}
+
+		d := struct {
+			Usuario  string
+			Tramites []datoTramitesTable
+		}{
+			Usuario:  usuarioLogeado.Usuario.NombreCompleto,
+			Tramites: tramitesTable,
+		}
+
+		tpl.ExecuteTemplate(w, "HTML.html", d)
+	}
 }
 
 func findAllTramitesRegistrados() (tramitesregistrados []TramiteRegistradoDTO) {
@@ -214,7 +217,7 @@ func findTramiteCambioEstadoByTramiteRegistradoID(idTR int64) (tramitesCambio []
 
 func crearDatosTable(tramitesRegistrados []TramiteRegistradoDTO) (tramitesTable []datoTramitesTable) {
 	for i := 0; i < len(tramitesRegistrados); i++ {
-		tramite := datoTramitesTable{id: tramitesRegistrados[i].ID, nombreCliente: tramitesRegistrados[i].ClienteID.NombreCompleto, cedulaCliente: tramitesRegistrados[i].ClienteID.Cedula, fechaRegistro: obtenerUltimoEstado(tramitesRegistrados[i].ID).FechaRegistro.String(), estado: obtenerUltimoEstado(tramitesRegistrados[i].ID).TramiteEstadoID.Nombre}
+		tramite := datoTramitesTable{ID: tramitesRegistrados[i].ID, NombreCliente: tramitesRegistrados[i].ClienteID.NombreCompleto, CedulaCliente: tramitesRegistrados[i].ClienteID.Cedula, FechaRegistro: obtenerUltimoEstado(tramitesRegistrados[i].ID).FechaRegistro.String(), Estado: obtenerUltimoEstado(tramitesRegistrados[i].ID).TramiteEstadoID.Nombre}
 		tramitesTable = append(tramitesTable, tramite)
 	}
 	return tramitesTable
@@ -237,11 +240,11 @@ func obtenerUltimoEstado(idTR int64) (tramiteCE TramiteCambioEstadoDTO) {
 
 //Estructura para el table view
 type datoTramitesTable struct {
-	id            int64
-	nombreCliente string
-	cedulaCliente string
-	estado        string
-	fechaRegistro string
+	ID            int64
+	NombreCliente string
+	CedulaCliente string
+	Estado        string
+	FechaRegistro string
 }
 
 //requisitosPresentados es una estructura para la lista de requisitosPresentados con la informacion de ellos que queremos mostrar
