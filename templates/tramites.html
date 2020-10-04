@@ -30,7 +30,7 @@
                 </div>
 
                 <div class="col-md-4 form-inline">
-                    <form action=/buscarPorCedula method="POST"></form>
+                    <form action=/buscarPorCedula method="POST">
                         <input type="search" class="form-control" placeholder="Buscar por Cédula" name="txtCedula">
                         
                         <input type="submit" class="btn btn-primary" value="Buscar" name="btnBuscar"> 
@@ -39,17 +39,14 @@
                 </div>
 
                 <div class="col-md-4 form-inline">
-                    <form>
-                        <select class="form-control" placeholder="DAKJDSKAJBSD">
-                            <option value="1">Activo</option>
-                            <option value="0">Incactivo</option>
+                    <form action=/buscarPorEstado method="POST">
+                        <select class="form-control" name="cbxEstado">
+                            <option value="En revision">En revision</option>
+                            <option value="Anulado">Anulado</option>
+                            <option value="Finalizado">Finalizado</option>
+                            <option value="Atrasado">Atrasado</option>
                           </select>
-                        <!--<select class="custom-select" id="inputGroupSelect04" value = "Buscar por Estado">
-                            =<option selected>Buscar por Estado</option>=
-                            <option value="1">Activo</option>
-                            <option value="2">Inactivo</option>
-                        </select>-->
-                        <button class="btn btn-primary" type="button">Buscar</button>
+                        <input type="submit" class="btn btn-primary" value="Buscar" name="btnBuscarE">
                     </form>
                 </div>
 
