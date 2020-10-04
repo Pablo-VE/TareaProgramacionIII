@@ -27,6 +27,8 @@ func main() {
 	http.HandleFunc("/", index)
 	http.HandleFunc("/tramitesRegistrados", login)
 	http.HandleFunc("/buscarPorId", buscarPorID)
+	http.HandleFunc("/buscarPorCedula", buscarPorCedula)
+	http.HandleFunc("/TramitesRegistrados", limpiar)
 	http.ListenAndServe(":8080", nil)
 }
 
@@ -102,6 +104,41 @@ func buscarPorID(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func buscarPorCedula(w http.ResponseWriter, r *http.Request) {
+	fcedula := r.FormValue("txtCedula")
+
+	tramitesDTO := findTramitesRegistradosByCedulaCliente(fcedula)
+	tramitesTable := crearDatosTable(tramitesDTO)
+
+	d := struct {
+		Usuario  string
+		Tramites []datoTramitesTable
+	}{
+		Usuario:  usuarioLogeado.Usuario.NombreCompleto,
+		Tramites: tramitesTable,
+	}
+
+	tpl.ExecuteTemplate(w, "tramites.html", d)
+
+}
+
+func limpiar(w http.ResponseWriter, r *http.Request) {
+
+	tramitesDTO := findAllTramitesRegistrados()
+	tramitesTable := crearDatosTable(tramitesDTO)
+
+	d := struct {
+		Usuario  string
+		Tramites []datoTramitesTable
+	}{
+		Usuario:  usuarioLogeado.Usuario.NombreCompleto,
+		Tramites: tramitesTable,
+	}
+
+	tpl.ExecuteTemplate(w, "tramites.html", d)
+
+}
+
 func findAllTramitesRegistrados() (tramitesregistrados []TramiteRegistradoDTO) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url+"tramites_registrados/", nil)
@@ -142,6 +179,26 @@ func findTramitesRegistradosByID(idTR int64) (tramiteregistrado TramiteRegistrad
 		json.Unmarshal(bodyBytes, &tramiteregistrado)
 	}
 	return tramiteregistrado
+}
+
+func findTramitesRegistradosByCedulaCliente(cedula string) (tramiteregistrados []TramiteRegistradoDTO) {
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", url+"tramites_registrados/"+cedula, nil)
+	req.Header.Add("Content-Type", "application/json;charset=utf-8")
+	req.Header.Add("Authorization", "bearer "+usuarioLogeado.Jwt)
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer res.Body.Close()
+	bodyBytes, _ := ioutil.ReadAll(res.Body)
+	if res.StatusCode == 200 {
+		json.Unmarshal(bodyBytes, &tramiteregistrados)
+	}
+	return tramiteregistrados
 }
 
 func findTipoTramiteByID(idTT int64) (tramitetipo TramiteTipoDTO) {

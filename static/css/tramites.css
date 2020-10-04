@@ -3,6 +3,9 @@ body{
     background-size: cover;
 }
 
-h2{
-    padding: 15px 0px 0px 0px;
+div{
+    padding: 8px 0px 0px 0px;
+}
+h1{
+    padding: 20px 0px 0px 0px;
 }

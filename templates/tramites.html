@@ -8,7 +8,6 @@
 </head>
 <body>
     <div class="container">
-        <h1></h1>
             <img src="/static/img/batman4.png" class="rounded" width="30" height="30"> 
             <font color="white">
                 <label>{{.Usuario}}</label>
@@ -54,11 +53,6 @@
                     </form>
                 </div>
 
-                <div class="col-md-4 form-inline" id="filtros">
-                    <form action=/limpiar method="POST">
-                        <input type="submit" class="btn btn-primary" value="Limpiar" name="btnLimpiar">                    
-                    </form>
-                </div>
                 
                 
             
@@ -70,7 +64,7 @@
         
       
         <font color="white">
-            <h2 align="center">Tramites Registrados</h2> 
+            <h1 align="center">Tramites Registrados</h1> 
         </font>                                                                                   
         <div class="table-responsive">          
             <table class="table  col-md-12 table-hover table-dark">
@@ -96,7 +90,14 @@
                 </tbody>
             </table>
         </div>
+        <div class="col-md-4 form-inline" id="filtros">
+            <form action=/TramitesRegistrados method="POST">
+                <input type="submit" class="btn btn-primary" value="Limpiar" name="btnLimpiar">                    
+            </form>
+        </div>
     </div>
+
+    
       
               
 </body>
