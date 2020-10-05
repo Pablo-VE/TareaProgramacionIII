@@ -164,11 +164,35 @@ func buscarPorFecha(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 
 	}
-
 	var fecha1 time.Time
 	fecha1 = date2
 	fechaString := fecha1.Format("Mon Jan _2 15:04:05 2006")
-	fmt.Println(fechaString)
+	tramitesDTO := findAllTramitesRegistrados()
+	tramitesTable := crearDatosTable(tramitesDTO)
+	var tramites []datoTramitesTable
+	for i := 0; i < len(tramitesTable); i++ {
+		if getFecha(tramitesTable[i].FechaRegistro) == getFecha(fechaString) {
+			tramites = append(tramites, tramitesTable[i])
+		}
+	}
+	d := struct {
+		Usuario  string
+		Tramites []datoTramitesTable
+	}{
+		Usuario:  usuarioLogeado.Usuario.NombreCompleto,
+		Tramites: tramites,
+	}
+	tpl.ExecuteTemplate(w, "tramites.html", d)
+}
+func getFecha(f string) (fechas string) {
+	layout := "Mon Jan _2 15:04:05 2006"
+	fecha, err := time.Parse(layout, f)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	fechas = fecha.Format("01-02-2006")
+	return fechas
 
 }
 
