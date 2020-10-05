@@ -78,7 +78,7 @@
             <h1 align="center">Tramites Registrados</h1> 
         </font>                                                                                   
         <div class="table-responsive">          
-            <table class="table  col-md-12 table-hover table-dark">
+            <table class="table  col-md-12 table-hover table-dark"  id="tableMain">
                 <thead>
                     <th>ID</th>
                     <th>Nombre del Cliente</th>
@@ -100,12 +100,29 @@
                     {{ end}}
                 </tbody>
             </table>
-            <input type="submit" class="btn btn-primary" value="Buscar" name="btnBuscar">
+            <div class="col-md-4 form-inline" id="filtros">
+                <form action=/verEditar method="POST">
+                    <input type="text" placeholder="ID" name="txtVerID" value="" id="txtIdTramite" size="3">
+                    <input type="submit" class="btn btn-primary" value="Ver tramite" name="btnVerTramite" id="btnV">                    
+                </form>
+            </div>
         </div>
  
     </div>
 
-    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+    <script>
+        $( document ).ready(function() {
+          $("#tableMain tbody").on('click', 'tr', function() {
+              var rowData = $(this).children("td").map(function() {
+                             return $(this).text();
+              }).get();
+              $("#txtIdTramite").val(rowData[0]);			  
+          });		
+        });
+    </script>
+
       
               
 </body>
