@@ -72,7 +72,6 @@ func guardarEstado(w http.ResponseWriter, r *http.Request) {
 	req, err := http.NewRequest("POST", url+"tramites_estados/", bytes.NewBuffer(j))
 	req.Header.Add("Content-Type", "application/json;charset=utf-8")
 	req.Header.Add("Authorization", "bearer "+usuarioLogeado.Jwt)
-	log.Printf("Request te: %s", req)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -83,12 +82,9 @@ func guardarEstado(w http.ResponseWriter, r *http.Request) {
 	defer res.Body.Close()
 	body, _ := ioutil.ReadAll(res.Body)
 	if res.StatusCode != 201 {
-		fmt.Println("No 201 TE")
-		fmt.Printf("Response tce: %s", body)
 		//irTramite(w, r)
 	} else {
 
-		fmt.Printf("Response tce: %s", body)
 		json.Unmarshal(body, &tramiteEstado)
 
 		var tramiteCambioEstado TramiteCambioEstadoDTO
@@ -104,7 +100,6 @@ func guardarEstado(w http.ResponseWriter, r *http.Request) {
 		req, err := http.NewRequest("POST", url+"tramites_cambio_estado/", bytes.NewBuffer(j))
 		req.Header.Add("Content-Type", "application/json;charset=utf-8")
 		req.Header.Add("Authorization", "bearer "+usuarioLogeado.Jwt)
-		log.Printf("Request tce: %s", req)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -115,11 +110,9 @@ func guardarEstado(w http.ResponseWriter, r *http.Request) {
 		defer res.Body.Close()
 		body, _ := ioutil.ReadAll(res.Body)
 		if res.StatusCode != 201 {
-			fmt.Println("No 201 TCE")
-			fmt.Printf("Response tce: %s", body)
 			//irTramite(w, r)
 		} else {
-			fmt.Printf("Response tce: %s", body)
+			json.Unmarshal(body, &tramiteCambioEstado)
 			limpiar(w, r)
 		}
 	}
