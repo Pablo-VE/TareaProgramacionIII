@@ -214,8 +214,74 @@ func limpiar(w http.ResponseWriter, r *http.Request) {
 }
 
 func irTramite(w http.ResponseWriter, r *http.Request) {
-	fid := r.FormValue("id")
-	fmt.Println("id table: ", fid)
+	fid := r.FormValue("txtVerID")
+	tid, err := strconv.ParseInt(fid, 10, 64)
+	if err != nil {
+
+	}
+	fmt.Println(tid)
+
+	tramiteRegistradoDTO := findTramitesRegistradosByID(tid)
+
+	tramiteRegistradoView := getTramiteRegistradoView(tramiteRegistradoDTO)
+
+	fmt.Printf("%v", tramiteRegistradoView)
+	/*
+		d := struct {
+			Usuario               string
+			TramiteRegistradoView TramiteRegistrado
+		}{
+			Usuario:               usuarioLogeado.Usuario.NombreCompleto,
+			TramiteRegistradoView: tramiteRegistradoView,
+		}*/
+
+	tpl.ExecuteTemplate(w, "TramiteRegistrado.html", nil)
+
+}
+
+//funcion para crear el tramite Registrado
+func getTramiteRegistradoView(tramiteRegistradoDTO TramiteRegistradoDTO) (tramiteRegistradoView TramiteRegistrado) {
+	tramiteRegistradoView.NombreCliente = tramiteRegistradoDTO.ClienteID.NombreCompleto
+	tramiteRegistradoView.CedulaCliente = tramiteRegistradoDTO.ClienteID.Cedula
+	tipoTramite := findTipoTramiteByID(tramiteRegistradoDTO.ID)
+	tramiteRegistradoView.DescripcionTipoTramite = tipoTramite.Descripcion
+	tramiteRegistradoView.NombreDepartamento = tipoTramite.Departamento.Nombre
+	tramiteRegistradoView.EstadoActualNombre = obtenerUltimoEstado(tramiteRegistradoDTO.ID).NombreTramiteEstado
+	tramiteRegistradoView.DescripcionEstado = obtenerUltimoEstado(tramiteRegistradoDTO.ID).DescripcionTramiteEstado
+
+	notasDTO := findNotasByTramiteRegistradoID(tramiteRegistradoDTO.ID)
+	var notas []Notas
+	if len(notasDTO) > 0 {
+		for i := 0; i < len(notasDTO); i++ {
+			nota := Notas{Titulo: notasDTO[i].Titulo, Contenido: notasDTO[i].Contenido}
+			notas = append(notas, nota)
+		}
+	}
+	tramiteRegistradoView.Notas = notas
+
+	requisitosR := findRequisitosPresentadosByTramiteRegistradoID(tramiteRegistradoDTO.ID)
+	var requisitosPresentados []RequisitosPresentados
+	if len(requisitosR) > 0 {
+		fmt.Println("entro if")
+		for i := 0; i < len(requisitosR); i++ {
+			requisitoPresentado := RequisitosPresentados{FechaRegistro: requisitosR[i].FechaRegistro.Format("Mon Jan _2 15:04:05 2006"), NombreRequisito: requisitosR[i].RequisitoID.Descripcion, DescripcionVariacion: requisitosR[i].RequisitoID.Variacion.Descripcion}
+			requisitosPresentados = append(requisitosPresentados, requisitoPresentado)
+		}
+		fmt.Printf("%v", requisitosPresentados)
+	}
+	tramiteRegistradoView.Requisitos = requisitosPresentados
+
+	tramitesCambio := findTramiteCambioEstadoByTramiteRegistradoID(tramiteRegistradoDTO.ID)
+	var tramitesCambioEstados []TramitesCambioEstados
+	if len(tramitesCambio) > 0 {
+		for i := 0; i < len(tramitesCambio); i++ {
+			tramiteCE := TramitesCambioEstados{NombreTramiteEstado: tramitesCambio[i].TramiteEstadoID.Nombre, DescripcionTramiteEstado: tramitesCambio[i].TramiteEstadoID.Descripcion, NombreUsuario: tramitesCambio[i].UsuarioID.NombreCompleto, FechaRegistro: tramitesCambio[i].FechaRegistro.Format("Mon Jan _2 15:04:05 2006")}
+			tramitesCambioEstados = append(tramitesCambioEstados, tramiteCE)
+		}
+	}
+	tramiteRegistradoView.TramitesCambioEstados = tramitesCambioEstados
+
+	return tramiteRegistradoView
 }
 
 func findAllTramitesRegistrados() (tramitesregistrados []TramiteRegistradoDTO) {
@@ -302,7 +368,7 @@ func findTipoTramiteByID(idTT int64) (tramitetipo TramiteTipoDTO) {
 
 }
 
-func findNotasByTramiteRegistradoID(idTR int64) {
+func findNotasByTramiteRegistradoID(idTR int64) (notas []NotaDTO) {
 	id := strconv.FormatInt(idTR, 10)
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url+"notas/tramitesRegistrados/"+id, nil)
@@ -317,14 +383,14 @@ func findNotasByTramiteRegistradoID(idTR int64) {
 	}
 	defer res.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(res.Body)
-	var notas []NotaDTO
 	if res.StatusCode == 200 {
 
 		json.Unmarshal(bodyBytes, &notas)
 	}
+	return notas
 }
 
-func findRequisitosPresentadosByTramiteRegistradoID(idTR int64) {
+func findRequisitosPresentadosByTramiteRegistradoID(idTR int64) (requisitosR []RequisitoPresentadoDTO) {
 	id := strconv.FormatInt(idTR, 10)
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url+"requisitos_presentados/tramite_registrado/"+id, nil)
@@ -339,11 +405,12 @@ func findRequisitosPresentadosByTramiteRegistradoID(idTR int64) {
 	}
 	defer res.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(res.Body)
-	var requisitosR []RequisitoPresentadoDTO
 	if res.StatusCode == 200 {
-
 		json.Unmarshal(bodyBytes, &requisitosR)
+		return requisitosR
 	}
+
+	return nil
 }
 
 func findTramiteCambioEstadoByTramiteRegistradoID(idTR int64) (tramitesCambio []TramiteCambioEstadoDTO) {
@@ -365,13 +432,14 @@ func findTramiteCambioEstadoByTramiteRegistradoID(idTR int64) (tramitesCambio []
 		json.Unmarshal(bodyBytes, &tramitesCambio)
 		return tramitesCambio
 	}
+
 	return nil
 
 }
 
 func crearDatosTable(tramitesRegistrados []TramiteRegistradoDTO) (tramitesTable []datoTramitesTable) {
 	for i := 0; i < len(tramitesRegistrados); i++ {
-		tramite := datoTramitesTable{ID: tramitesRegistrados[i].ID, NombreCliente: tramitesRegistrados[i].ClienteID.NombreCompleto, CedulaCliente: tramitesRegistrados[i].ClienteID.Cedula, TipoTramite: findTipoTramiteByID(int64(tramitesRegistrados[i].TramitesTiposID)).Descripcion, FechaRegistro: obtenerUltimoEstado(tramitesRegistrados[i].ID).fechaRegistro, Estado: obtenerUltimoEstado(tramitesRegistrados[i].ID).nombreTramiteEstado}
+		tramite := datoTramitesTable{ID: tramitesRegistrados[i].ID, NombreCliente: tramitesRegistrados[i].ClienteID.NombreCompleto, CedulaCliente: tramitesRegistrados[i].ClienteID.Cedula, TipoTramite: findTipoTramiteByID(int64(tramitesRegistrados[i].TramitesTiposID)).Descripcion, FechaRegistro: obtenerUltimoEstado(tramitesRegistrados[i].ID).FechaRegistro, Estado: obtenerUltimoEstado(tramitesRegistrados[i].ID).NombreTramiteEstado}
 		tramitesTable = append(tramitesTable, tramite)
 	}
 	return tramitesTable
@@ -389,10 +457,10 @@ func obtenerUltimoEstado(idTR int64) (tramiteCE TramitesCambioEstados) {
 				tramiteCEDTO = tramitesCambio[i]
 			}
 		}
-		tramiteCE.nombreTramiteEstado = tramiteCEDTO.TramiteEstadoID.Nombre
-		tramiteCE.descripcionTramiteEstado = tramiteCEDTO.TramiteEstadoID.Descripcion
-		tramiteCE.nombreUsuario = tramiteCEDTO.UsuarioID.NombreCompleto
-		tramiteCE.fechaRegistro = tramiteCEDTO.FechaRegistro.Format("Mon Jan _2 15:04:05 2006")
+		tramiteCE.NombreTramiteEstado = tramiteCEDTO.TramiteEstadoID.Nombre
+		tramiteCE.DescripcionTramiteEstado = tramiteCEDTO.TramiteEstadoID.Descripcion
+		tramiteCE.NombreUsuario = tramiteCEDTO.UsuarioID.NombreCompleto
+		tramiteCE.FechaRegistro = tramiteCEDTO.FechaRegistro.Format("Mon Jan _2 15:04:05 2006")
 	}
 	return tramiteCE
 }
@@ -407,38 +475,38 @@ type datoTramitesTable struct {
 	FechaRegistro string
 }
 
-//requisitosPresentados es una estructura para la lista de requisitosPresentados con la informacion de ellos que queremos mostrar
-type requisitosPresentados struct {
-	fechaRegistro        time.Time
-	nombreRequisito      string
-	descripcionVariacion string
+//RequisitosPresentados es una estructura para la lista de requisitosPresentados con la informacion de ellos que queremos mostrar
+type RequisitosPresentados struct {
+	FechaRegistro        string
+	NombreRequisito      string
+	DescripcionVariacion string
 }
 
 //Notas es una estructura para la lista de notas con la informacion de ellas que queremos mostrar
 type Notas struct {
-	titulo    string
-	contenido string
+	Titulo    string
+	Contenido string
 }
 
 //TramitesCambioEstados es una estructura para la lista de los cambios de estado de los tramites con la informacion de ellos que queremos mostrar
 type TramitesCambioEstados struct {
-	nombreTramiteEstado      string
-	descripcionTramiteEstado string
-	nombreUsuario            string
-	fechaRegistro            string
+	NombreTramiteEstado      string
+	DescripcionTramiteEstado string
+	NombreUsuario            string
+	FechaRegistro            string
 }
 
 //TramiteRegistrado es la estructura de los tramites registrados que queremos mostrar en el html
 type TramiteRegistrado struct {
-	nombreCliente          string
-	cedulaCliente          string
-	descripcionTipoTramite string
-	nombreDepartamento     string
-	requisitos             []requisitosPresentados
-	notas                  []Notas
-	tramitesCambioEstados  []TramitesCambioEstados
-	estadoActualNombre     string
-	descripcionEstado      string
+	NombreCliente          string
+	CedulaCliente          string
+	DescripcionTipoTramite string
+	NombreDepartamento     string
+	Requisitos             []RequisitosPresentados
+	Notas                  []Notas
+	TramitesCambioEstados  []TramitesCambioEstados
+	EstadoActualNombre     string
+	DescripcionEstado      string
 }
 
 //AuthenticationRequest is...
@@ -530,8 +598,8 @@ type TramiteRegistradoDTO struct {
 type RequisitoPresentadoDTO struct {
 	ID                  int64                `json:"id"`
 	FechaRegistro       time.Time            `json:"fechaRegistro"`
-	TramiteRegistradoID TramiteRegistradoDTO `json:"tramiteRegistradoId"`
-	RequisitoID         RequisitoDTO         `json:"requisitoId"`
+	TramiteRegistradoID TramiteRegistradoDTO `json:"tramitesRegistrados"`
+	RequisitoID         RequisitoDTO         `json:"requisito"`
 }
 
 //TramiteCambioEstadoDTO is...
