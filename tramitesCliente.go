@@ -34,11 +34,96 @@ func main() {
 	http.HandleFunc("/buscarPorFecha", buscarPorFecha)
 	http.HandleFunc("/TramitesRegistrados", limpiar)
 	http.HandleFunc("/irTramite", irTramite)
+	http.HandleFunc("/guardarEstado", guardarEstado)
 	http.ListenAndServe(":8080", nil)
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
 	tpl.ExecuteTemplate(w, "login.html", nil)
+}
+
+var tramiteRegistradoEnCuestion TramiteRegistradoDTO
+
+func guardarEstado(w http.ResponseWriter, r *http.Request) {
+	festado := r.FormValue("cbxEstado")
+	fdescripcion := r.FormValue("txtDescripcion")
+
+	var tramiteEstado TramiteEstadoDTO
+
+	if festado == "Revisar" {
+		tramiteEstado.Nombre = "En revisión"
+	}
+	if festado == "Anular" {
+		tramiteEstado.Nombre = "Anulado"
+	}
+	if festado == "Finalizar" {
+		tramiteEstado.Nombre = "Finalizado"
+	}
+	if festado == "Entregar" {
+		tramiteEstado.Nombre = "Entregado"
+	}
+	tramiteEstado.Descripcion = fdescripcion
+
+	j, err := json.Marshal(tramiteEstado)
+	if err != nil {
+		log.Fatal(err)
+	}
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", url+"tramites_estados/", bytes.NewBuffer(j))
+	req.Header.Add("Content-Type", "application/json;charset=utf-8")
+	req.Header.Add("Authorization", "bearer "+usuarioLogeado.Jwt)
+	log.Printf("Request te: %s", req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer res.Body.Close()
+	body, _ := ioutil.ReadAll(res.Body)
+	if res.StatusCode != 201 {
+		fmt.Println("No 201 TE")
+		fmt.Printf("Response tce: %s", body)
+		//irTramite(w, r)
+	} else {
+
+		fmt.Printf("Response tce: %s", body)
+		json.Unmarshal(body, &tramiteEstado)
+
+		var tramiteCambioEstado TramiteCambioEstadoDTO
+		tramiteCambioEstado.TramiteEstadoID = tramiteEstado
+		tramiteCambioEstado.TramitesRegistradosID = tramiteRegistradoEnCuestion
+		tramiteCambioEstado.UsuarioID = usuarioLogeado.Usuario
+
+		j, err := json.Marshal(tramiteCambioEstado)
+		if err != nil {
+			log.Fatal(err)
+		}
+		client := &http.Client{}
+		req, err := http.NewRequest("POST", url+"tramites_cambio_estado/", bytes.NewBuffer(j))
+		req.Header.Add("Content-Type", "application/json;charset=utf-8")
+		req.Header.Add("Authorization", "bearer "+usuarioLogeado.Jwt)
+		log.Printf("Request tce: %s", req)
+		if err != nil {
+			log.Fatal(err)
+		}
+		res, err := client.Do(req)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer res.Body.Close()
+		body, _ := ioutil.ReadAll(res.Body)
+		if res.StatusCode != 201 {
+			fmt.Println("No 201 TCE")
+			fmt.Printf("Response tce: %s", body)
+			//irTramite(w, r)
+		} else {
+			fmt.Printf("Response tce: %s", body)
+			limpiar(w, r)
+		}
+	}
+
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
@@ -221,9 +306,9 @@ func irTramite(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(tid)
 
-	tramiteRegistradoDTO := findTramitesRegistradosByID(tid)
+	tramiteRegistradoEnCuestion = findTramitesRegistradosByID(tid)
 
-	tramiteRegistradoView := getTramiteRegistradoView(tramiteRegistradoDTO)
+	tramiteRegistradoView := getTramiteRegistradoView(tramiteRegistradoEnCuestion)
 
 	tramiteRegistradoView.Usuario = usuarioLogeado.Usuario.NombreCompleto
 
