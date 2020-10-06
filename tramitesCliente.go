@@ -519,7 +519,7 @@ type AuthenticationRequest struct {
 type AuthenticationResponse struct {
 	Jwt      string               `json:"jwt"`
 	Usuario  UsuarioDTO           `json:"usuario"`
-	Permisos []PermisoOtorgadoDTO `json:"permisosOtorgados"`
+	Permisos []PermisoOtorgadoDTO `json:"permisos"`
 }
 
 //UsuarioDTO is...
