@@ -7,17 +7,20 @@
      <link rel="stylesheet" href="/static/css/tramiteRegistrado.css">
 </head>
 <body>
-    
+    <br>
     <div class="container">
         <img src="/static/img/batman4.png" class="rounded" width="30" height="30"> 
-        <label>{{.Usuario}}</label>
+        <font color="white">
+            <label>{{.Usuario}}</label>
+        </font> 
     
         <h2></h2>
     </div>
     
     <div class="container">
-        <h1> Trámite Registrado </h1>
-        
+        <font color="white">
+            <h1 align="center"> Trámite Registrado </h1>
+        </font>
           
     
         <h2></h2>
@@ -27,19 +30,23 @@
         
         <div class="row">
             
-            <div class="card" style="width:500px">
+            <div class="card bg-dark" style="width:500px">
                 <div class="card-body">
-                    <h4 class="card-title">Cliente</h4>
-                    <p class="card-text">Nombre:</p>
-                    <p class="card-text">Cédula:</p>
+                    <font color="white">
+                        <h4 align="center" class="card-title">Cliente</h4>
+                        <p class="card-text">Nombre: {{.NombreCliente}}</p>
+                        <p class="card-text">Cédula: {{.CedulaCliente}}</p>
+                    </font>
                 </div>
             </div>
             
-            <div class="card" style="width:500px">
+            <div class="card bg-dark" style="width:500px">
                 <div class="card-body">
-                    <h4 class="card-title">Tipo de Trámite</h4>
-                    <p class="card-text">Descripción:</p>
-                    <p class="card-text">Departamento:</p>
+                    <font color="white">
+                        <h4 align="center" class="card-title">Tipo de Trámite</h4>
+                        <p class="card-text">Descripción: {{.DescripcionTipoTramite}}</p>
+                        <p class="card-text">Departamento: {{.NombreDepartamento}}</p>
+                    </font>
                 </div>
             </div>
 
@@ -48,74 +55,75 @@
            
 
         
-      
-
-        <h2>Requisitos Presentados</h2>     
+        
+        <font color="white">
+            <h2 id="reqPre">Requisitos Presentados</h2>    
+        </font> 
         <div class= "row">
             <div class="table-responsive">          
-                <table class="table  col-md-11">
+                <table class="table  col-md-11 table-hover table-dark">
                 <thead>
-                    <th>ID</th>
+                    <th>Requisito</th>
                     <th>Fecha de Registro</th>
+                    <th>Variacion</th>
                 </thead>
                 <tbody>
-                    {{ range .Tramites}}
-                    <tr>
-                        <td>{{ .ID }}</td>
-                        <td>{{ .NombreCliente }}</td>
-                        <td>{{ .CedulaCliente }}</td>
-                        <td>{{ .TipoTramite }}</td>
-                        <td>{{ .Estado }}</td>
-                        <td>{{ .FechaRegistro }}</td>
-                    </tr>
-                {{ end}}
+                    {{ range .Requisitos}}
+                        <tr>
+                            <td>{{ .NombreRequisito }}</td>
+                            <td>{{ .FechaRegistro }}</td>
+                            <td>{{ .DescripcionVariacion }}</td>
+                        </tr>
+                    {{ end}}
                 </tbody>
                 </table>
             </div>
             
         </div>     
         
-        <h2>Notas</h2>     
+        <font color="white">
+            <h2>Notas</h2>     
+        </font>
         <div class= "row">
             <div class="table-responsive">          
-                <table class="table  col-md-11">
+                <table class="table  col-md-11 table-hover table-dark">
                 <thead>
                     <th>Título</th>
                     <th>Contenido</th>
                 </thead>
                 <tbody>
-                    <!--<tr>
-                    <td>1</td>
-                    <td>Anna</td>
-                    <td>Pitt</td>
-                    <td>35</td>
-                    <td>New York</td>
-                    <td>USA</td>
-                    </tr>-->
+                    {{ range .Notas}}
+                        <tr>
+                            <td>{{ .Titulo }}</td>
+                            <td>{{ .Contenido }}</td>
+                        </tr>
+                    {{ end}}
                 </tbody>
                 </table>
             </div>
             
-        </div>  
-        <h3>Cambios de Estado</h3>     
+        </div> 
+        <font color="white">
+            <h3>Cambios de Estado</h3>    
+        </font>  
         <div class= "row">
             <div class="table-responsive">          
-                <table class="table  col-md-11">
+                <table class="table  col-md-11 table-hover table-dark">
                 <thead>
-                    <th>Nombre</th>
+                    <th>Estado</th>
                     <th>Descripcion</th>
-                    <th>Usuario</th>
+                    <th>Usuario que lo registro</th>
                     <th>Fecha de Registro</th>
                 </thead>
                 <tbody>
-                    <!--<tr>
-                    <td>1</td>
-                    <td>Anna</td>
-                    <td>Pitt</td>
-                    <td>35</td>
-                    <td>New York</td>
-                    <td>USA</td>
-                    </tr>-->
+                    {{ range .TramitesCambioEstados}}
+                        <tr>
+                            <td>{{ .NombreTramiteEstado }}</td>
+                            <td>{{ .DescripcionTramiteEstado }}</td>
+                            <td>{{ .NombreUsuario }}</td>
+                            <td>{{ .FechaRegistro }}</td>
+                        </tr>
+                    {{ end}}
                 </tbody>
                 </table>
             </div>
@@ -123,25 +131,31 @@
         </div>  
 
         <div class= "row">
-            <div class="card" style="width:500px">
+            <div class="card bg-dark" style="width:500px">
                 <div class="card-body">
-                    <h4 class="card-title">Estado Actual</h4>
-                    <p class="card-text">texto</p>
+                    <font color="white">
+                        <h4 align="center" class="card-title">Estado Actual</h4>
+                        <p class="card-text">Estado: {{.EstadoActualNombre}}</p>
+                        <p class="card-text">Descripcion: {{.DescripcionEstado}}</p>
+                    </font>
                 </div>
             </div>
             
-            <div class="card" style="width:500px">
+            <div class="card bg-secondary" style="width:500px">
                 <div class="card-body">
-                    <h4 class="card-title">Nuevo Estado</h4>
-                    <p class="card-text">Nombre:</p>
-                    <p class="card-text">Descripcion:</p>
-                    <p class="card-text">Sucesores:</p>
+                    <font color="white">
+                        <h4 align="center" class="card-title">Nuevo Estado</h4>
+                        <p class="card-text">Nombre:</p>
+                        <p class="card-text">Descripcion:</p>
+                        <p class="card-text">Sucesores:</p>
+                    </font>
                 </div>
             </div>
             
         </div> 
     </div>
-      
+    <br>
+    <br>
               
 </body>
 </html>

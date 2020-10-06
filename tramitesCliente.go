@@ -225,17 +225,9 @@ func irTramite(w http.ResponseWriter, r *http.Request) {
 
 	tramiteRegistradoView := getTramiteRegistradoView(tramiteRegistradoDTO)
 
-	fmt.Printf("%v", tramiteRegistradoView)
-	/*
-		d := struct {
-			Usuario               string
-			TramiteRegistradoView TramiteRegistrado
-		}{
-			Usuario:               usuarioLogeado.Usuario.NombreCompleto,
-			TramiteRegistradoView: tramiteRegistradoView,
-		}*/
+	tramiteRegistradoView.Usuario = usuarioLogeado.Usuario.NombreCompleto
 
-	tpl.ExecuteTemplate(w, "TramiteRegistrado.html", nil)
+	tpl.ExecuteTemplate(w, "TramiteRegistrado.html", tramiteRegistradoView)
 
 }
 
@@ -279,6 +271,7 @@ func getTramiteRegistradoView(tramiteRegistradoDTO TramiteRegistradoDTO) (tramit
 			tramitesCambioEstados = append(tramitesCambioEstados, tramiteCE)
 		}
 	}
+	fmt.Printf("%v", tramitesCambioEstados)
 	tramiteRegistradoView.TramitesCambioEstados = tramitesCambioEstados
 
 	return tramiteRegistradoView
@@ -498,6 +491,7 @@ type TramitesCambioEstados struct {
 
 //TramiteRegistrado es la estructura de los tramites registrados que queremos mostrar en el html
 type TramiteRegistrado struct {
+	Usuario                string
 	NombreCliente          string
 	CedulaCliente          string
 	DescripcionTipoTramite string
