@@ -62,7 +62,7 @@ func GetTramiteRegistradoView(tramiteRegistradoDTO dto.TramiteRegistradoDTO) (tr
 	tramiteRegistradoView.EstadoActualNombre = ObtenerUltimoEstado(tramiteRegistradoDTO.ID).NombreTramiteEstado
 	tramiteRegistradoView.DescripcionEstado = ObtenerUltimoEstado(tramiteRegistradoDTO.ID).DescripcionTramiteEstado
 
-	notasDTO := findNotasByTramiteRegistradoID(tramiteRegistradoDTO.ID)
+	notasDTO := conexionservidor.FindNotasByTramiteRegistradoID(tramiteRegistradoDTO.ID)
 	var notas []Notas
 	if len(notasDTO) > 0 {
 		for i := 0; i < len(notasDTO); i++ {
@@ -99,9 +99,9 @@ func GetTramiteRegistradoView(tramiteRegistradoDTO dto.TramiteRegistradoDTO) (tr
 }
 
 //CrearDatosTable is ..
-func CrearDatosTable(tramitesRegistrados []dto.TramiteRegistradoDTO) (tramitesTable []datoTramitesTable) {
+func CrearDatosTable(tramitesRegistrados []dto.TramiteRegistradoDTO) (tramitesTable []DatoTramitesTable) {
 	for i := 0; i < len(tramitesRegistrados); i++ {
-		tramite := datoTramitesTable{ID: tramitesRegistrados[i].ID, NombreCliente: tramitesRegistrados[i].ClienteID.NombreCompleto, CedulaCliente: tramitesRegistrados[i].ClienteID.Cedula, TipoTramite: findTipoTramiteByID(int64(tramitesRegistrados[i].TramitesTiposID)).Descripcion, FechaRegistro: obtenerUltimoEstado(tramitesRegistrados[i].ID).FechaRegistro, Estado: obtenerUltimoEstado(tramitesRegistrados[i].ID).NombreTramiteEstado}
+		tramite := DatoTramitesTable{ID: tramitesRegistrados[i].ID, NombreCliente: tramitesRegistrados[i].ClienteID.NombreCompleto, CedulaCliente: tramitesRegistrados[i].ClienteID.Cedula, TipoTramite: conexionservidor.FindTipoTramiteByID(int64(tramitesRegistrados[i].TramitesTiposID)).Descripcion, FechaRegistro: ObtenerUltimoEstado(tramitesRegistrados[i].ID).FechaRegistro, Estado: ObtenerUltimoEstado(tramitesRegistrados[i].ID).NombreTramiteEstado}
 		tramitesTable = append(tramitesTable, tramite)
 	}
 	return tramitesTable

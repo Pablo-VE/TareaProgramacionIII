@@ -1,6 +1,7 @@
 package conexionservidor
 
 import (
+	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"log"
@@ -13,6 +14,34 @@ import (
 const url string = "http://localhost:8989/"
 
 var usuarioLogeado dto.AuthenticationResponse
+
+//Logear es la funcion para hacer el request del logeo
+func Logear(fid string, fpassword string) (usuario dto.AuthenticationResponse) {
+	ar := dto.AuthenticationRequest{Cedula: fid, Password: fpassword}
+	j, err := json.Marshal(ar)
+	if err != nil {
+		log.Fatal(err)
+	}
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", url+"autenticacion/login", bytes.NewBuffer(j))
+	req.Header.Add("Content-Type", "application/json;charset=utf-8")
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer res.Body.Close()
+	if res.StatusCode != 200 {
+		//tpl.ExecuteTemplate(w, "login.html", nil)
+	} else {
+		body, _ := ioutil.ReadAll(res.Body)
+		json.Unmarshal(body, &usuarioLogeado)
+	}
+	return usuarioLogeado
+
+}
 
 //FindAllTramitesRegistrados is ...
 func FindAllTramitesRegistrados() (tramitesregistrados []dto.TramiteRegistradoDTO) {
