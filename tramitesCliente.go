@@ -11,9 +11,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Pablo-VE/TareaProgramacionIII/dto"
 )
 
-var usuarioLogeado AuthenticationResponse
+var usuarioLogeado dto.AuthenticationResponse
 
 const url string = "http://localhost:8989/"
 
@@ -42,13 +44,13 @@ func index(w http.ResponseWriter, r *http.Request) {
 	tpl.ExecuteTemplate(w, "login.html", nil)
 }
 
-var tramiteRegistradoEnCuestion TramiteRegistradoDTO
+var tramiteRegistradoEnCuestion dto.TramiteRegistradoDTO
 
 func guardarEstado(w http.ResponseWriter, r *http.Request) {
 	festado := r.FormValue("cbxEstado")
 	fdescripcion := r.FormValue("txtDescripcion")
 
-	var tramiteEstado TramiteEstadoDTO
+	var tramiteEstado dto.TramiteEstadoDTO
 
 	if festado == "Revisar" {
 		tramiteEstado.Nombre = "En revisión"
@@ -87,7 +89,7 @@ func guardarEstado(w http.ResponseWriter, r *http.Request) {
 
 		json.Unmarshal(body, &tramiteEstado)
 
-		var tramiteCambioEstado TramiteCambioEstadoDTO
+		var tramiteCambioEstado dto.TramiteCambioEstadoDTO
 		tramiteCambioEstado.TramiteEstadoID = tramiteEstado
 		tramiteCambioEstado.TramitesRegistradosID = tramiteRegistradoEnCuestion
 		tramiteCambioEstado.UsuarioID = usuarioLogeado.Usuario
@@ -126,7 +128,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 	fid := r.FormValue("cedula")
 	fpassword := r.FormValue("password")
-	ar := AuthenticationRequest{fid, fpassword}
+	ar := dto.AuthenticationRequest{Cedula: fid, Password: fpassword}
 	j, err := json.Marshal(ar)
 	if err != nil {
 		log.Fatal(err)
@@ -171,7 +173,7 @@ func buscarPorID(w http.ResponseWriter, r *http.Request) {
 
 	}
 	tramiteDTO := findTramitesRegistradosByID(nid)
-	var tramitesDTO []TramiteRegistradoDTO
+	var tramitesDTO []dto.TramiteRegistradoDTO
 	tramitesDTO = append(tramitesDTO, tramiteDTO)
 	tramitesTable := crearDatosTable(tramitesDTO)
 
@@ -310,7 +312,7 @@ func irTramite(w http.ResponseWriter, r *http.Request) {
 }
 
 //funcion para crear el tramite Registrado
-func getTramiteRegistradoView(tramiteRegistradoDTO TramiteRegistradoDTO) (tramiteRegistradoView TramiteRegistrado) {
+func getTramiteRegistradoView(tramiteRegistradoDTO dto.TramiteRegistradoDTO) (tramiteRegistradoView TramiteRegistrado) {
 	tramiteRegistradoView.NombreCliente = tramiteRegistradoDTO.ClienteID.NombreCompleto
 	tramiteRegistradoView.CedulaCliente = tramiteRegistradoDTO.ClienteID.Cedula
 	tipoTramite := findTipoTramiteByID(tramiteRegistradoDTO.ID)
@@ -355,7 +357,7 @@ func getTramiteRegistradoView(tramiteRegistradoDTO TramiteRegistradoDTO) (tramit
 	return tramiteRegistradoView
 }
 
-func findAllTramitesRegistrados() (tramitesregistrados []TramiteRegistradoDTO) {
+func findAllTramitesRegistrados() (tramitesregistrados []dto.TramiteRegistradoDTO) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url+"tramites_registrados/", nil)
 	req.Header.Add("Content-Type", "application/json;charset=utf-8")
@@ -376,7 +378,7 @@ func findAllTramitesRegistrados() (tramitesregistrados []TramiteRegistradoDTO) {
 	return nil
 }
 
-func findTramitesRegistradosByID(idTR int64) (tramiteregistrado TramiteRegistradoDTO) {
+func findTramitesRegistradosByID(idTR int64) (tramiteregistrado dto.TramiteRegistradoDTO) {
 	id := strconv.FormatInt(idTR, 10)
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url+"tramites_registrados/"+id, nil)
@@ -397,7 +399,7 @@ func findTramitesRegistradosByID(idTR int64) (tramiteregistrado TramiteRegistrad
 	return tramiteregistrado
 }
 
-func findTramitesRegistradosByCedulaCliente(cedula string) (tramiteregistrados []TramiteRegistradoDTO) {
+func findTramitesRegistradosByCedulaCliente(cedula string) (tramiteregistrados []dto.TramiteRegistradoDTO) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url+"tramites_registrados/cedula/"+cedula, nil)
 	req.Header.Add("Content-Type", "application/json;charset=utf-8")
@@ -417,7 +419,7 @@ func findTramitesRegistradosByCedulaCliente(cedula string) (tramiteregistrados [
 	return tramiteregistrados
 }
 
-func findTipoTramiteByID(idTT int64) (tramitetipo TramiteTipoDTO) {
+func findTipoTramiteByID(idTT int64) (tramitetipo dto.TramiteTipoDTO) {
 	id := strconv.FormatInt(idTT, 10)
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url+"tramites_tipos/"+id, nil)
@@ -439,7 +441,7 @@ func findTipoTramiteByID(idTT int64) (tramitetipo TramiteTipoDTO) {
 
 }
 
-func findNotasByTramiteRegistradoID(idTR int64) (notas []NotaDTO) {
+func findNotasByTramiteRegistradoID(idTR int64) (notas []dto.NotaDTO) {
 	id := strconv.FormatInt(idTR, 10)
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url+"notas/tramitesRegistrados/"+id, nil)
@@ -461,7 +463,7 @@ func findNotasByTramiteRegistradoID(idTR int64) (notas []NotaDTO) {
 	return notas
 }
 
-func findRequisitosPresentadosByTramiteRegistradoID(idTR int64) (requisitosR []RequisitoPresentadoDTO) {
+func findRequisitosPresentadosByTramiteRegistradoID(idTR int64) (requisitosR []dto.RequisitoPresentadoDTO) {
 	id := strconv.FormatInt(idTR, 10)
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url+"requisitos_presentados/tramite_registrado/"+id, nil)
@@ -484,7 +486,7 @@ func findRequisitosPresentadosByTramiteRegistradoID(idTR int64) (requisitosR []R
 	return nil
 }
 
-func findTramiteCambioEstadoByTramiteRegistradoID(idTR int64) (tramitesCambio []TramiteCambioEstadoDTO) {
+func findTramiteCambioEstadoByTramiteRegistradoID(idTR int64) (tramitesCambio []dto.TramiteCambioEstadoDTO) {
 	id := strconv.FormatInt(idTR, 10)
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url+"tramites_cambio_estado/tramitesRegistrados/"+id, nil)
@@ -508,7 +510,7 @@ func findTramiteCambioEstadoByTramiteRegistradoID(idTR int64) (tramitesCambio []
 
 }
 
-func crearDatosTable(tramitesRegistrados []TramiteRegistradoDTO) (tramitesTable []datoTramitesTable) {
+func crearDatosTable(tramitesRegistrados []dto.TramiteRegistradoDTO) (tramitesTable []datoTramitesTable) {
 	for i := 0; i < len(tramitesRegistrados); i++ {
 		tramite := datoTramitesTable{ID: tramitesRegistrados[i].ID, NombreCliente: tramitesRegistrados[i].ClienteID.NombreCompleto, CedulaCliente: tramitesRegistrados[i].ClienteID.Cedula, TipoTramite: findTipoTramiteByID(int64(tramitesRegistrados[i].TramitesTiposID)).Descripcion, FechaRegistro: obtenerUltimoEstado(tramitesRegistrados[i].ID).FechaRegistro, Estado: obtenerUltimoEstado(tramitesRegistrados[i].ID).NombreTramiteEstado}
 		tramitesTable = append(tramitesTable, tramite)
@@ -518,7 +520,7 @@ func crearDatosTable(tramitesRegistrados []TramiteRegistradoDTO) (tramitesTable 
 }
 
 func obtenerUltimoEstado(idTR int64) (tramiteCE TramitesCambioEstados) {
-	var tramiteCEDTO TramiteCambioEstadoDTO
+	var tramiteCEDTO dto.TramiteCambioEstadoDTO
 	tramitesCambio := findTramiteCambioEstadoByTramiteRegistradoID(idTR)
 	if len(tramitesCambio) > 0 {
 		idMayor := tramitesCambio[0].ID
