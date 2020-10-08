@@ -1,8 +1,6 @@
 package util
 
 import (
-	"fmt"
-
 	"github.com/Pablo-VE/TareaProgramacionIII/conexionservidor"
 	"github.com/Pablo-VE/TareaProgramacionIII/dto"
 )
@@ -75,12 +73,10 @@ func GetTramiteRegistradoView(tramiteRegistradoDTO dto.TramiteRegistradoDTO) (tr
 	requisitosR := conexionservidor.FindRequisitosPresentadosByTramiteRegistradoID(tramiteRegistradoDTO.ID)
 	var requisitosPresentados []RequisitosPresentados
 	if len(requisitosR) > 0 {
-		fmt.Println("entro if")
 		for i := 0; i < len(requisitosR); i++ {
 			requisitoPresentado := RequisitosPresentados{FechaRegistro: requisitosR[i].FechaRegistro.Format("Mon Jan _2 15:04:05 2006"), NombreRequisito: requisitosR[i].RequisitoID.Descripcion, DescripcionVariacion: requisitosR[i].RequisitoID.Variacion.Descripcion}
 			requisitosPresentados = append(requisitosPresentados, requisitoPresentado)
 		}
-		fmt.Printf("%v", requisitosPresentados)
 	}
 	tramiteRegistradoView.Requisitos = requisitosPresentados
 
@@ -92,7 +88,6 @@ func GetTramiteRegistradoView(tramiteRegistradoDTO dto.TramiteRegistradoDTO) (tr
 			tramitesCambioEstados = append(tramitesCambioEstados, tramiteCE)
 		}
 	}
-	fmt.Printf("%v", tramitesCambioEstados)
 	tramiteRegistradoView.TramitesCambioEstados = tramitesCambioEstados
 
 	return tramiteRegistradoView

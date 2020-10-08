@@ -1,12 +1,8 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"html/template"
-	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -16,8 +12,6 @@ import (
 	"github.com/Pablo-VE/TareaProgramacionIII/dto"
 	"github.com/Pablo-VE/TareaProgramacionIII/util"
 )
-
-const url string = "http://localhost:8989/"
 
 var usuarioLogeado dto.AuthenticationResponse
 
@@ -68,57 +62,16 @@ func guardarEstado(w http.ResponseWriter, r *http.Request) {
 	}
 	tramiteEstado.Descripcion = fdescripcion
 
-	j, err := json.Marshal(tramiteEstado)
-	if err != nil {
-		log.Fatal(err)
-	}
-	client := &http.Client{}
-	req, err := http.NewRequest("POST", url+"tramites_estados/", bytes.NewBuffer(j))
-	req.Header.Add("Content-Type", "application/json;charset=utf-8")
-	req.Header.Add("Authorization", "bearer "+usuarioLogeado.Jwt)
-	if err != nil {
-		log.Fatal(err)
-	}
-	res, err := client.Do(req)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer res.Body.Close()
-	body, _ := ioutil.ReadAll(res.Body)
-	if res.StatusCode != 201 {
+	tramiteEstadoGuardado := conexionservidor.CreateTramiteEstado(tramiteEstado)
+	if tramiteEstadoGuardado.Nombre == "" {
 		//irTramite(w, r)
 	} else {
-
-		json.Unmarshal(body, &tramiteEstado)
-
 		var tramiteCambioEstado dto.TramiteCambioEstadoDTO
-		tramiteCambioEstado.TramiteEstadoID = tramiteEstado
+		tramiteCambioEstado.TramiteEstadoID = tramiteEstadoGuardado
 		tramiteCambioEstado.TramitesRegistradosID = tramiteRegistradoEnCuestion
 		tramiteCambioEstado.UsuarioID = usuarioLogeado.Usuario
-
-		j, err := json.Marshal(tramiteCambioEstado)
-		if err != nil {
-			log.Fatal(err)
-		}
-		client := &http.Client{}
-		req, err := http.NewRequest("POST", url+"tramites_cambio_estado/", bytes.NewBuffer(j))
-		req.Header.Add("Content-Type", "application/json;charset=utf-8")
-		req.Header.Add("Authorization", "bearer "+usuarioLogeado.Jwt)
-		if err != nil {
-			log.Fatal(err)
-		}
-		res, err := client.Do(req)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer res.Body.Close()
-		body, _ := ioutil.ReadAll(res.Body)
-		if res.StatusCode != 201 {
-			//irTramite(w, r)
-		} else {
-			json.Unmarshal(body, &tramiteCambioEstado)
-			limpiar(w, r)
-		}
+		tramiteCambioEstado = conexionservidor.CreateTramiteCambioEstado(tramiteCambioEstado)
+		limpiar(w, r)
 	}
 
 }
