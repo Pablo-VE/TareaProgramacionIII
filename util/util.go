@@ -3,6 +3,7 @@ package util
 import (
 	"fmt"
 
+	"github.com/Pablo-VE/TareaProgramacionIII/conexionservidor"
 	"github.com/Pablo-VE/TareaProgramacionIII/dto"
 )
 
@@ -55,7 +56,7 @@ type TramiteRegistrado struct {
 func GetTramiteRegistradoView(tramiteRegistradoDTO dto.TramiteRegistradoDTO) (tramiteRegistradoView TramiteRegistrado) {
 	tramiteRegistradoView.NombreCliente = tramiteRegistradoDTO.ClienteID.NombreCompleto
 	tramiteRegistradoView.CedulaCliente = tramiteRegistradoDTO.ClienteID.Cedula
-	tipoTramite := findTipoTramiteByID(tramiteRegistradoDTO.ID)
+	tipoTramite := conexionservidor.FindTipoTramiteByID(tramiteRegistradoDTO.ID)
 	tramiteRegistradoView.DescripcionTipoTramite = tipoTramite.Descripcion
 	tramiteRegistradoView.NombreDepartamento = tipoTramite.Departamento.Nombre
 	tramiteRegistradoView.EstadoActualNombre = ObtenerUltimoEstado(tramiteRegistradoDTO.ID).NombreTramiteEstado
@@ -71,7 +72,7 @@ func GetTramiteRegistradoView(tramiteRegistradoDTO dto.TramiteRegistradoDTO) (tr
 	}
 	tramiteRegistradoView.Notas = notas
 
-	requisitosR := findRequisitosPresentadosByTramiteRegistradoID(tramiteRegistradoDTO.ID)
+	requisitosR := conexionservidor.FindRequisitosPresentadosByTramiteRegistradoID(tramiteRegistradoDTO.ID)
 	var requisitosPresentados []RequisitosPresentados
 	if len(requisitosR) > 0 {
 		fmt.Println("entro if")
@@ -83,7 +84,7 @@ func GetTramiteRegistradoView(tramiteRegistradoDTO dto.TramiteRegistradoDTO) (tr
 	}
 	tramiteRegistradoView.Requisitos = requisitosPresentados
 
-	tramitesCambio := findTramiteCambioEstadoByTramiteRegistradoID(tramiteRegistradoDTO.ID)
+	tramitesCambio := conexionservidor.FindTramiteCambioEstadoByTramiteRegistradoID(tramiteRegistradoDTO.ID)
 	var tramitesCambioEstados []TramitesCambioEstados
 	if len(tramitesCambio) > 0 {
 		for i := 0; i < len(tramitesCambio); i++ {
@@ -97,7 +98,7 @@ func GetTramiteRegistradoView(tramiteRegistradoDTO dto.TramiteRegistradoDTO) (tr
 	return tramiteRegistradoView
 }
 
-//CrearDatosTable is...
+//CrearDatosTable is ..
 func CrearDatosTable(tramitesRegistrados []dto.TramiteRegistradoDTO) (tramitesTable []datoTramitesTable) {
 	for i := 0; i < len(tramitesRegistrados); i++ {
 		tramite := datoTramitesTable{ID: tramitesRegistrados[i].ID, NombreCliente: tramitesRegistrados[i].ClienteID.NombreCompleto, CedulaCliente: tramitesRegistrados[i].ClienteID.Cedula, TipoTramite: findTipoTramiteByID(int64(tramitesRegistrados[i].TramitesTiposID)).Descripcion, FechaRegistro: obtenerUltimoEstado(tramitesRegistrados[i].ID).FechaRegistro, Estado: obtenerUltimoEstado(tramitesRegistrados[i].ID).NombreTramiteEstado}
@@ -110,7 +111,7 @@ func CrearDatosTable(tramitesRegistrados []dto.TramiteRegistradoDTO) (tramitesTa
 //ObtenerUltimoEstado is ..
 func ObtenerUltimoEstado(idTR int64) (tramiteCE TramitesCambioEstados) {
 	var tramiteCEDTO dto.TramiteCambioEstadoDTO
-	tramitesCambio := findTramiteCambioEstadoByTramiteRegistradoID(idTR)
+	tramitesCambio := conexionservidor.FindTramiteCambioEstadoByTramiteRegistradoID(idTR)
 	if len(tramitesCambio) > 0 {
 		idMayor := tramitesCambio[0].ID
 		tramiteCEDTO = tramitesCambio[0]
