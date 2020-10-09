@@ -25,7 +25,6 @@ func POST(direccion string, estructura interface{}) (response []byte) {
 	req, err := http.NewRequest("POST", url+direccion, bytes.NewBuffer(j))
 	req.Header.Add("Content-Type", "application/json;charset=utf-8")
 	req.Header.Add("Authorization", "bearer "+usuarioLogeado.Jwt)
-	log.Printf("Request: %s", req)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,8 +33,9 @@ func POST(direccion string, estructura interface{}) (response []byte) {
 		log.Fatal(err)
 	}
 	defer res.Body.Close()
+
 	if res.StatusCode != 200 && res.StatusCode != 201 {
-		//tpl.ExecuteTemplate(w, "login.html", nil)
+
 	} else {
 		if res.StatusCode == 200 || res.StatusCode == 201 {
 			body, _ := ioutil.ReadAll(res.Body)

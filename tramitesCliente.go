@@ -67,7 +67,7 @@ func guardarEstado(w http.ResponseWriter, r *http.Request) {
 
 	tramiteEstadoGuardado := conexionservidor.CreateTramiteEstado(tramiteEstado)
 	if tramiteEstadoGuardado.Nombre == "" {
-		//irTramite(w, r)
+
 	} else {
 		var tramiteCambioEstado dto.TramiteCambioEstadoDTO
 		tramiteCambioEstado.TramiteEstadoID = tramiteEstadoGuardado
