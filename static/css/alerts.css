@@ -1,0 +1,9 @@
+body{
+    background: url(../img/background.jpg) no-repeat center center fixed;
+    background-size: cover;
+}
+
+.card{
+    padding: 10px 10px 10px 10px;
+  box-shadow: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22);
+}
