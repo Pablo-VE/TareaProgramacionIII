@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/static/css/tramites.css">
 </head>
 <body>
+    <br>
     <div class="container">
             <img src="/static/img/batman4.png" class="rounded" width="30" height="30"> 
             <font color="white">
@@ -44,7 +45,7 @@
                             <option value="En revision">En revision</option>
                             <option value="Anulado">Anulado</option>
                             <option value="Finalizado">Finalizado</option>
-                            <option value="Atrasado">Atrasado</option>
+                            <option value="Entregado">Entregado</option>
                           </select>
                         <input type="submit" class="btn btn-primary" value="Buscar" name="btnBuscarE">
                     </form>
@@ -101,9 +102,9 @@
                 </tbody>
             </table>
             <div class="col-md-4 form-inline" id="filtros">
-                <form action=/verEditar method="POST">
+                <form action=/irTramite method="POST">
                     <input type="text" placeholder="ID" name="txtVerID" value="" id="txtIdTramite" size="3">
-                    <input type="submit" class="btn btn-primary" value="Ver tramite" name="btnVerTramite" id="btnV">                    
+                    <input type="submit" class="btn btn-primary" value="Modificar tramite" name="btnVerTramite" id="btnV">                    
                 </form>
             </div>
         </div>
@@ -123,7 +124,8 @@
         });
     </script>
 
-      
+    <br>
+    <br>
               
 </body>
 </html>
