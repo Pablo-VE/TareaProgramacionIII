@@ -55,7 +55,7 @@ Estructuramos nuestro código por medio de carpetas, donde cada una de ellas tie
 
 * **Static:** Tenemos todos los estilos css que el sistema va a necesitar, allí también se van a encontrar las imágenes incluidas en los archivos html.
 
-
+* **TramitesCliente:** Archivo tramitescliente.go, acá es donde se encuentra el main quien es el encargado de llamar los métodos del html, y devolviendo una respuesta con los valores ingresados en el html. Desde este modulo realizamos todas las consultas y validaciones a la API para que nos retorne toda la información que debemos mostrarle al usuario o nos brinde el acceso para realizar distintas tareas en el sistema.
 
 * **Util:** Encontramos las estructuras de cada tabla, con solamente los datos que deseamos mostrar en las vistas, de esta manera podemos omitir información que se considera de poco interés para el usuario. Una buena práctica de programación es mostrarle al usuario solamente lo que necesita y esto es lo que tratamos de realizar en este módulo.
 
