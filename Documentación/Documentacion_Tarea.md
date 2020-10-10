@@ -74,4 +74,10 @@ En esta parte de la vista se puede observar al usuario logueado en la esquina su
 
 ![Modificación de Trámites](Imagenes/ModificarTramite2.PNG)
 En la parte superior se encuentra una lista de notas relacionadas al trámite registrado, cada nota con su nombre y contenido, seguidamente se encuentra una tabla con los cambios de estado del trámite, en esta parte se puede observar todos los cambios de estado que ha tenido el trámite con el paso del tiempo. Por útlimo se encuentra información sobre el estado actual del trámite y un formulario para cambiar el estado.
+
+---
+##Principales Sitios de Consulta
+* **Stack Overflow**
+* **Youtube**
+* **Documentación del sitio oficial de Golang**
 #<div/>
